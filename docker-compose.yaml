@@ -70,19 +70,23 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_KEYCLOAK_URL: ${NEXT_PUBLIC_KEYCLOAK_URL}
+        NEXT_PUBLIC_SERVER_URL: ${NEXT_PUBLIC_SERVER_URL}
+        NEXT_PUBLIC_KEYCLOAK_REALM: ${NEXT_PUBLIC_KEYCLOAK_REALM}
+        NEXT_PUBLIC_KEYCLOAK_CLIENT: ${NEXT_PUBLIC_KEYCLOAK_CLIENT}
     container_name: angular-frontend
     ports:
-      - "4200:80"
-    environment:
-      API_URL: http://localhost:8081
-      KEYCLOAK_URL: http://localhost:8080
-      KEYCLOAK_REALM: pki-demo
-      KEYCLOAK_CLIENT_ID: angular-client
+      - "4200:4200"
+    env_file:
+      - ./frontend/.env
     depends_on:
       - backend
       - keycloak
     networks:
       - app-network
+    restart: unless-stopped
+
 
 networks:
   app-network:
