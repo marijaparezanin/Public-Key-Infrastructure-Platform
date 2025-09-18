@@ -1,18 +1,27 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { KeycloakService } from '../keycloak/keycloak.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-home',
-  template: `
-    <h1>Home</h1>
-    <p>Welcome! You are logged in.</p>
-    <button (click)="logout()">Logout</button>
-  `,
+  template: `<p>Redirecting to your dashboard...</p>`,
 })
-export class HomeComponent {
-  constructor(private keycloak: KeycloakService) {}
+export class HomeComponent implements OnInit {
+  constructor(private keycloak: KeycloakService, private router: Router) {}
 
-  logout() {
-    this.keycloak.logout();
+  ngOnInit() {
+    if (!this.keycloak.isLoggedIn()) {
+      this.keycloak.login();
+      return;
+    }
+
+    const roles = this.keycloak.getRoles();
+    if (roles.includes('admin')) {
+      this.router.navigate(['/home/admin']);
+    } else if (roles.includes('ca_user')) {
+      this.router.navigate(['/home/ca-user']);
+    } else {
+      this.router.navigate(['/home/ee-user']);
+    }
   }
 }

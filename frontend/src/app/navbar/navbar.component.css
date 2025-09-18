@@ -1,0 +1,52 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--primary-color);
+  padding: 10px 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  font-family: 'Roboto', sans-serif;
+}
+.navbar-logo {
+  width: 40px;   /* adjust to desired size */
+  height: auto;
+}
+
+
+.navbar-left {
+  display: flex;
+  align-items: center; /* vertically center logo and title */
+  gap: 10px; /* optional spacing between logo and title */
+}
+
+
+.navbar-title {
+  color: var(--light-beige);
+  font-weight: 200;
+  margin: 0;
+}
+
+.navbar-right {
+  display: flex;
+  gap: 15px;
+}
+
+.btn-logout {
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  font-size: 1rem;
+  background-color: var(--secondary-color);
+  color: var(--light-beige);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-right: 50px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-logout:hover {
+  background-color: var(--font-dark-blue);
+}

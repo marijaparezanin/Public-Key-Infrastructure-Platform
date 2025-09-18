@@ -67,7 +67,12 @@ export class KeycloakService {
   }
 
   getRoles(): string[] {
-    return this.keycloak?.realmAccess?.roles || [];
+    const token = this.keycloak?.token
+    if (token) {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.resource_access?.['pki-frontend']?.roles || []
+    }
+    return []
   }
 
   isReady(): boolean {
