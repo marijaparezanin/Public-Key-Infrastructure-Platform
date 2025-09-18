@@ -7,10 +7,7 @@ import { KeycloakService } from './app/keycloak/keycloak.service';
 import { provideHttpClient } from '@angular/common/http';
 
 export function initializeKeycloak(keycloak: KeycloakService) {
-  return () => {
-    console.log('Initializing Keycloak');
-    return keycloak.init();
-  };
+  return () => keycloak.init();
 }
 
 bootstrapApplication(AppComponent, {
