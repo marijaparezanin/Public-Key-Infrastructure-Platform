@@ -1,7 +1,105 @@
 <app-navbar></app-navbar>
 
+<div class="dashboard-container">
+  <h1>Admin Dashboard</h1>
 
-<h1>Admin Dashboard</h1>
-<button>Add new CA User</button>
-<button>Add CA Certificate</button>
-<button>View All Certificates</button>
+  <!-- Tabs -->
+  <div class="tabs">
+    <button [class.active]="activeTab === 'addUser'" (click)="activeTab='addUser'">Add CA User</button>
+    <button [class.active]="activeTab === 'addCert'" (click)="activeTab='addCert'">Add CA Certificate</button>
+    <button [class.active]="activeTab === 'viewCerts'" (click)="activeTab='viewCerts'">View All Certificates</button>
+  </div>
+
+  <!-- Tab content -->
+  <div class="tab-content">
+
+    <!-- Add CA User Form -->
+    <form *ngIf="activeTab==='addUser'" class="form">
+      <label>Email</label>
+      <input type="email" placeholder="Enter user email">
+
+      <label>Password</label>
+      <input type="password" placeholder="Enter password">
+
+      <label>Confirm Password</label>
+      <input type="password" placeholder="Confirm password">
+
+      <label>First Name</label>
+      <input type="text" placeholder="First Name">
+
+      <label>Last Name</label>
+      <input type="text" placeholder="Last Name">
+
+      <label>Organization</label>
+      <input type="text" placeholder="Organization">
+
+      <button type="submit">Create User</button>
+    </form>
+
+    <!-- Add CA Certificate Form -->
+    <form *ngIf="activeTab==='addCert'" class="form">
+      <label>Certificate Name</label>
+      <input type="text" placeholder="Enter certificate name">
+
+      <label>Owner Common Name (CN)</label>
+      <input type="text" placeholder="CN">
+
+      <label>Organization (O)</label>
+      <input type="text" placeholder="Organization">
+
+      <label>Organizational Unit (OU)</label>
+      <input type="text" placeholder="OU">
+
+      <label>Country (C)</label>
+      <input type="text" placeholder="Country">
+
+      <label>Email</label>
+      <input type="email" placeholder="Email">
+
+      <label>Certificate Type</label>
+      <select>
+        <option>Root</option>
+        <option>Intermediate</option>
+        <option>End-Entity</option>
+      </select>
+
+      <label>Validity (days)</label>
+      <input type="number" placeholder="Validity">
+
+      <button type="submit">Issue Certificate</button>
+    </form>
+
+    <!-- View All Certificates -->
+    <div *ngIf="activeTab==='viewCerts'" class="table-container">
+      <table>
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>CN</th>
+          <th>O</th>
+          <th>OU</th>
+          <th>C</th>
+          <th>Email</th>
+          <th>Type</th>
+          <th>Validity</th>
+          <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let cert of certificates">
+          <td>{{cert.id}}</td>
+          <td>{{cert.cn}}</td>
+          <td>{{cert.o}}</td>
+          <td>{{cert.ou}}</td>
+          <td>{{cert.c}}</td>
+          <td>{{cert.email}}</td>
+          <td>{{cert.type}}</td>
+          <td>{{cert.validity}}</td>
+          <td>{{cert.status}}</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>

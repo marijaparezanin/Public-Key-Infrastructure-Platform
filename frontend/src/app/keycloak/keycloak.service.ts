@@ -78,4 +78,19 @@ export class KeycloakService {
   isReady(): boolean {
     return this.initialized;
   }
+
+
+  async updateTokenIfNeeded(minValiditySeconds = 30): Promise<string | null> {
+    if (!this.keycloak) return null;
+    try {
+      await this.keycloak.updateToken(minValiditySeconds);
+      return this.keycloak.token ?? null;
+    } catch (err) {
+      console.error('Failed to refresh Keycloak token', err);
+      // Ako refresh ne uspije, preusmjeri korisnika na login (možeš i samo vratiti null)
+      this.login();
+      return null;
+    }
+  }
+
 }
