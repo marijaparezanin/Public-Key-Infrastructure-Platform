@@ -27,6 +27,7 @@ interface CACertificate {
     CommonModule
   ],
   templateUrl: './ee-home.component.html',
+  standalone: true,
   styleUrl: './ee-home.component.css'
 })
 export class EeHomeComponent {

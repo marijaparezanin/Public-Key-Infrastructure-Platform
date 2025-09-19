@@ -3,10 +3,10 @@ WORKDIR /app
 
 COPY pom.xml mvnw ./
 COPY .mvn .mvn
-RUN ./mvnw dependency:go-offline
+RUN ./mvnw dependency:resolve
 
 COPY src src
-RUN ./mvnw clean package -DskipTests
+RUN ./mvnw package -DskipTests
 
 FROM bellsoft/liberica-openjdk-alpine-musl:17
 WORKDIR /app

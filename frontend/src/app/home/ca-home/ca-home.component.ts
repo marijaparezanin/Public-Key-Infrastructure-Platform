@@ -5,11 +5,12 @@ import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-ca-home',
-    imports: [
-        NavbarComponent,
-      CommonModule, FormsModule
-    ],
+  imports: [
+    NavbarComponent,
+    CommonModule, FormsModule
+  ],
   templateUrl: './ca-home.component.html',
+  standalone: true,
   styleUrl: './ca-home.component.css'
 })
 export class CaHomeComponent {

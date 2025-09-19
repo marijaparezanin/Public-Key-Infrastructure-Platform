@@ -24,8 +24,6 @@ services:
       POSTGRES_PASSWORD: admin
     ports:
       - "5434:5432"
-    volumes:
-      - backend-db-data:/var/lib/postgresql/data
     networks:
       - app-network
 
@@ -63,7 +61,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: admin
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/pki-demo/protocol/openid-connect/certs
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/pki/protocol/openid-connect/certs
     depends_on:
       - postgres-backend
       - keycloak
@@ -97,4 +95,3 @@ networks:
 
 volumes:
   keycloak-db-data:
-  backend-db-data:
