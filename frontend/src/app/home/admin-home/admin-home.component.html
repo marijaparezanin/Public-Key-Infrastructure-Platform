@@ -37,34 +37,34 @@
     </form>
 
     <!-- Add CA Certificate Form -->
-    <form *ngIf="activeTab==='addCert'" class="form">
+    <form *ngIf="activeTab==='addCert'" class="form" (ngSubmit)="submitCertificate()">
       <label>Certificate Name</label>
-      <input type="text" placeholder="Enter certificate name">
+      <input type="text" [(ngModel)]="certificateForm.name" name="name" placeholder="Enter certificate name" required>
 
       <label>Owner Common Name (CN)</label>
-      <input type="text" placeholder="CN">
+      <input type="text" [(ngModel)]="certificateForm.cn" name="cn" placeholder="CN" required>
 
       <label>Organization (O)</label>
-      <input type="text" placeholder="Organization">
+      <input type="text" [(ngModel)]="certificateForm.o" name="o" placeholder="Organization" required>
 
       <label>Organizational Unit (OU)</label>
-      <input type="text" placeholder="OU">
+      <input type="text" [(ngModel)]="certificateForm.ou" name="ou" placeholder="OU">
 
       <label>Country (C)</label>
-      <input type="text" placeholder="Country">
+      <input type="text" [(ngModel)]="certificateForm.c" name="c" placeholder="Country">
 
       <label>Email</label>
-      <input type="email" placeholder="Email">
+      <input type="email" [(ngModel)]="certificateForm.email" name="email" placeholder="Email">
 
       <label>Certificate Type</label>
-      <select>
+      <select [(ngModel)]="certificateForm.type" name="type">
         <option>Root</option>
         <option>Intermediate</option>
         <option>End-Entity</option>
       </select>
 
       <label>Validity (days)</label>
-      <input type="number" placeholder="Validity">
+      <input type="number" [(ngModel)]="certificateForm.validity" name="validity" placeholder="Validity" required>
 
       <button type="submit">Issue Certificate</button>
     </form>
