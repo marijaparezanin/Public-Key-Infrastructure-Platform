@@ -49,6 +49,10 @@ public class Certificate {
     @Lob
     private String extensionsJson;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "issuer_id", nullable = true)
+    private Certificate issuer;
+
     @Column(nullable = false)
     private boolean revoked = false;
 

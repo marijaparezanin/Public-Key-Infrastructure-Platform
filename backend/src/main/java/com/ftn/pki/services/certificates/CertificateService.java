@@ -14,11 +14,13 @@ import com.ftn.pki.utils.cryptography.AESUtils;
 import com.ftn.pki.utils.cryptography.RSAUtils;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
+import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -65,19 +67,20 @@ public class CertificateService {
 
         // --- 3. Generate X500Name for Subject ---
         X500Name subjectX500 = new X500NameBuilder()
-                .addRDN(org.bouncycastle.asn1.x500.style.BCStyle.CN, dto.getCommonName())
-                .addRDN(org.bouncycastle.asn1.x500.style.BCStyle.SURNAME, dto.getSurname())
-                .addRDN(org.bouncycastle.asn1.x500.style.BCStyle.GIVENNAME, dto.getGivenName())
-                .addRDN(org.bouncycastle.asn1.x500.style.BCStyle.O, dto.getOrganization())
-                .addRDN(org.bouncycastle.asn1.x500.style.BCStyle.OU, dto.getOrganizationalUnit())
-                .addRDN(org.bouncycastle.asn1.x500.style.BCStyle.C, dto.getCountry())
-                .addRDN(org.bouncycastle.asn1.x500.style.BCStyle.E, dto.getEmail())
+                .addRDN(BCStyle.CN, dto.getCommonName())
+                .addRDN(BCStyle.SURNAME, dto.getSurname())
+                .addRDN(BCStyle.GIVENNAME, dto.getGivenName())
+                .addRDN(BCStyle.O, dto.getOrganization())
+                .addRDN(BCStyle.OU, dto.getOrganizationalUnit())
+                .addRDN(BCStyle.C, dto.getCountry())
+                .addRDN(BCStyle.E, dto.getEmail())
                 .build();
 
         Subject subject = new Subject(subjectPublicKey, subjectX500);
 
         // --- 4. Fetch Issuer ---
         Issuer issuer;
+        Certificate issuerCertEntity = null;
         if (dto.getIssuerCertificateId() == null && dto.getType() == CertificateType.ROOT) {
             // Self-signed Root
             issuer = new Issuer(subjectPrivateKey, subjectX500);
@@ -85,8 +88,12 @@ public class CertificateService {
             if (dto.getIssuerCertificateId() == null) {
                 throw new IllegalArgumentException("Issuer certificate ID must be provided for non-root certificates");
             }
-            Certificate issuerCertEntity = certificateRepository.findById(UUID.fromString(dto.getIssuerCertificateId()))
+            issuerCertEntity = certificateRepository.findById(UUID.fromString(dto.getIssuerCertificateId()))
                     .orElseThrow(() -> new IllegalArgumentException("Issuer certificate not found"));
+
+            if (!isCertificateValid(issuerCertEntity)) {
+                throw new IllegalArgumentException("Issuer certificate is not valid");
+            }
 
             X509Certificate issuerCert = issuerCertEntity.getX509Certificate();
             PrivateKey decriptedIssuerPrivateKey = loadAndDecryptPrivateKeyForIssuer(issuerCertEntity);
@@ -99,7 +106,7 @@ public class CertificateService {
                 issuer,
                 dto.getStartDate(),
                 dto.getEndDate(),
-                new java.math.BigInteger(64, new SecureRandom()).toString() // Serial number
+                new BigInteger(64, new SecureRandom()).toString() // Serial number
         );
 
         // --- 6. Encrypt private key with DEK-om ---
@@ -118,8 +125,33 @@ public class CertificateService {
         certificateEntity.setPrivateKeyEncrypted(Base64.getDecoder().decode(encryptedSubjectPrivateKey.getCiphertext()));
         certificateEntity.setIv(encryptedSubjectPrivateKey.getIv());
         certificateEntity.setExtensionsJson(dto.getExtensions() != null ? String.join(",", dto.getExtensions()) : "");
+        certificateEntity.setIssuer(issuerCertEntity);
+
+        if (!isCertificateValid(certificateEntity)) {
+            throw new IllegalArgumentException("Generated certificate is not valid");
+        }
 
         return certificateRepository.save(certificateEntity);
+    }
+
+    public Certificate findById(UUID id) {
+        return certificateRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Certificate not found"));
+    }
+
+    public boolean isCertificateValid(Certificate certificate) throws Exception {
+        X509Certificate x509Certificate = certificate.getX509Certificate();
+        boolean isValidByDate = CertificateUtils.isValidByDate(x509Certificate);
+        boolean isSignatureValid = CertificateUtils.isValidSignature(x509Certificate,
+                certificate.getIssuer() != null ? certificate.getIssuer().getX509Certificate() : x509Certificate);
+        boolean isRevoked = certificate.isRevoked();
+
+        if (certificate.getType() == CertificateType.ROOT) {
+            return isValidByDate && isSignatureValid && !isRevoked;
+        }
+
+        boolean isIssuerValid = isCertificateValid(certificate.getIssuer());
+        return isValidByDate && isSignatureValid && !isRevoked && isIssuerValid;
     }
 
     private SecretKey getOrganizationDEK(Organization organization) throws Exception {

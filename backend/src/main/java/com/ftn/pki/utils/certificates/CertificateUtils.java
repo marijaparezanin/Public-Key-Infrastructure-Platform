@@ -67,4 +67,21 @@ public class CertificateUtils {
         return new X500Name(subjectDN);
     }
 
+    public static boolean isValidByDate(X509Certificate certificate) {
+        try {
+            certificate.checkValidity();
+            return true;
+        } catch (CertificateException e) {
+            return false;
+        }
+    }
+
+    public static boolean isValidSignature(X509Certificate certificate, X509Certificate issuerCertificate) {
+        try {
+            certificate.verify(issuerCertificate.getPublicKey());
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
