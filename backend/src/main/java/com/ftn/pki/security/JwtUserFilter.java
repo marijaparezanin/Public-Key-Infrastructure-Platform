@@ -43,10 +43,6 @@ public class JwtUserFilter extends OncePerRequestFilter {
                 String lastname = String.valueOf(token.getTokenAttributes().get("family_name"));
                 String organizationName = String.valueOf(token.getTokenAttributes().get("organization"));
 
-                Collection<String> roles = token.getAuthorities().stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .toList();
-
                 // --- Role parsing and priority ---
                 List<UserRole> priority = List.of(UserRole.ROLE_admin, UserRole.ROLE_ca_user, UserRole.ROLE_ee_user);
                 UserRole selectedRole = token.getAuthorities().stream()
