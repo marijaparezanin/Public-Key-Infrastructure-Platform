@@ -226,6 +226,7 @@ fabric.properties
 
 # Package Files #
 *.jar
+!providers/*.jar
 *.war
 *.nar
 *.ear

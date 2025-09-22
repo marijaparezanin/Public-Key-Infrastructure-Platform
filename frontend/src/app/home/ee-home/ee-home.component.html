@@ -1,0 +1,149 @@
+<app-navbar></app-navbar>
+
+<div class="dashboard-container">
+  <h1>End-Entity User Dashboard</h1>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button [class.active]="activeTab==='uploadGenerate'" (click)="activeTab='uploadGenerate'">Upload / Generate</button>
+    <button [class.active]="activeTab==='selectCA'" (click)="activeTab='selectCA'">Select CA Certificate</button>
+    <button [class.active]="activeTab==='download'" (click)="activeTab='download'">Download Certificate & Key</button>
+    <button [class.active]="activeTab==='viewCerts'" (click)="activeTab='viewCerts'">View My Certificates</button>
+    <button [class.active]="activeTab==='revoke'" (click)="activeTab='revoke'">Revoke Certificate</button>
+  </div>
+
+  <!-- Tab content -->
+  <div class="tab-content">
+
+    <!-- Combined Upload / Generate Form -->
+    <form *ngIf="activeTab==='uploadGenerate'" class="form combined-form">
+
+      <div class="column">
+        <h3>Upload CSR & Key</h3>
+        <label>Upload CSR (.pem)</label>
+        <input type="file" accept=".pem">
+
+        <label>Upload Private Key (.key)</label>
+        <input type="file" accept=".key">
+
+        <button type="submit">Upload</button>
+      </div>
+
+      <div class="column">
+        <h3>Generate Keys & Certificate</h3>
+        <label>Common Name (CN)</label>
+        <input type="text" placeholder="Enter CN">
+
+        <label>Organization (O)</label>
+        <input type="text" placeholder="Enter Organization">
+
+        <label>Organizational Unit (OU)</label>
+        <input type="text" placeholder="Enter OU">
+
+        <label>Country (C)</label>
+        <input type="text" placeholder="Enter Country">
+
+        <label>Email</label>
+        <input type="email" placeholder="Enter Email">
+
+        <label>Validity (days)</label>
+        <input type="number" placeholder="Enter Validity">
+
+        <button type="submit">Generate</button>
+      </div>
+
+    </form>
+
+    <!-- Select CA Certificate Form -->
+    <form *ngIf="activeTab==='selectCA'" class="form">
+      <label>Select CA Certificate</label>
+      <select>
+        <option *ngFor="let ca of caCertificates">{{ca.name}}</option>
+      </select>
+
+      <button type="submit">Select</button>
+    </form>
+
+    <!-- Download Certificates -->
+    <div *ngIf="activeTab==='download'" class="table-container">
+      <table>
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>CN</th>
+          <th>O</th>
+          <th>OU</th>
+          <th>C</th>
+          <th>Email</th>
+          <th>Type</th>
+          <th>Validity</th>
+          <th>Status</th>
+          <th>Download</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let cert of certificates">
+          <td>{{cert.id}}</td>
+          <td>{{cert.cn}}</td>
+          <td>{{cert.o}}</td>
+          <td>{{cert.ou}}</td>
+          <td>{{cert.c}}</td>
+          <td>{{cert.email}}</td>
+          <td>{{cert.type}}</td>
+          <td>{{cert.validity}}</td>
+          <td>{{cert.status}}</td>
+          <td>
+            <button class="edit">Download</button>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- View My Certificates -->
+    <div *ngIf="activeTab==='viewCerts'" class="table-container">
+      <table>
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>CN</th>
+          <th>O</th>
+          <th>OU</th>
+          <th>C</th>
+          <th>Email</th>
+          <th>Type</th>
+          <th>Validity</th>
+          <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let cert of certificates">
+          <td>{{cert.id}}</td>
+          <td>{{cert.cn}}</td>
+          <td>{{cert.o}}</td>
+          <td>{{cert.ou}}</td>
+          <td>{{cert.c}}</td>
+          <td>{{cert.email}}</td>
+          <td>{{cert.type}}</td>
+          <td>{{cert.validity}}</td>
+          <td>{{cert.status}}</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Revoke Certificate Form -->
+    <form *ngIf="activeTab==='revoke'" class="form">
+      <label>Select Certificate to Revoke</label>
+      <select>
+        <option *ngFor="let cert of certificates">{{cert.cn}}</option>
+      </select>
+
+      <label>Reason for Revocation</label>
+      <input type="text" placeholder="Enter reason">
+
+      <button type="submit">Revoke</button>
+    </form>
+
+  </div>
+</div>

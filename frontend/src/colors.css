@@ -1,0 +1,13 @@
+:root {
+    --primary-color: #118AB2; /* Replace with your primary color */
+    --secondary-color: rgba(13, 91, 117, 0.58);
+    --light-beige: #fffdf5;
+    --beige: #fff6de;
+    --light-blue: #E5F9FF;
+    --font-dark-blue: #073B4C;
+    --yellow-accent: #FFD166;
+    --error-color: #B21114;
+    --error-color-lighter: #FF7092;
+    --green-color: #7E9B08;
+    --disabled-color: #B0B0B0;
+  }
