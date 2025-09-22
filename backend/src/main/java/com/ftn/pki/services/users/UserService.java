@@ -1,7 +1,7 @@
-package com.ftn.pki.services;
+package com.ftn.pki.services.users;
 
-import com.ftn.pki.models.User;
-import com.ftn.pki.repositories.UserRepository;
+import com.ftn.pki.models.users.User;
+import com.ftn.pki.repositories.users.UserRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
