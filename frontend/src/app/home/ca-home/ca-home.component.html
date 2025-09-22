@@ -5,11 +5,8 @@
 
   <!-- Tabs -->
   <div class="tabs">
-    <button [class.active]="activeTab === 'issueIntermediate'" (click)="activeTab='issueIntermediate'">
-      Issue Intermediate Certificate
-    </button>
-    <button [class.active]="activeTab === 'issueEndEntity'" (click)="activeTab='issueEndEntity'">
-      Issue End-Entity Certificate
+    <button [class.active]="activeTab === 'issueCerts'" (click)="activeTab='issueCerts'">
+      Issue Certificate
     </button>
     <button [class.active]="activeTab === 'viewCerts'" (click)="activeTab='viewCerts'">
       View My Certificates
@@ -22,90 +19,12 @@
   <!-- Tab content -->
   <div class="tab-content">
 
-    <!-- Issue Intermediate Certificate Form -->
-    <form *ngIf="activeTab==='issueIntermediate'" class="form">
-      <label>Certificate Name</label>
-      <input type="text" placeholder="Enter certificate name">
-
-      <label>Owner CN</label>
-      <input type="text" placeholder="Common Name (CN)">
-
-      <label>Organization (O)</label>
-      <input type="text" placeholder="Organization">
-
-      <label>Organizational Unit (OU)</label>
-      <input type="text" placeholder="OU">
-
-      <label>Country (C)</label>
-      <input type="text" placeholder="Country">
-
-      <label>Email</label>
-      <input type="email" placeholder="Email">
-
-      <label>Validity (days)</label>
-      <input type="number" placeholder="Validity">
-
-      <button type="submit">Issue Certificate</button>
-    </form>
-
-    <!-- Issue End-Entity Certificate Form -->
-    <form *ngIf="activeTab==='issueEndEntity'" class="form">
-      <label>Certificate Name</label>
-      <input type="text" placeholder="Enter certificate name">
-
-      <label>Owner CN</label>
-      <input type="text" placeholder="Common Name (CN)">
-
-      <label>Organization (O)</label>
-      <input type="text" placeholder="Organization">
-
-      <label>Organizational Unit (OU)</label>
-      <input type="text" placeholder="OU">
-
-      <label>Country (C)</label>
-      <input type="text" placeholder="Country">
-
-      <label>Email</label>
-      <input type="email" placeholder="Email">
-
-      <label>Validity (days)</label>
-      <input type="number" placeholder="Validity">
-
-      <button type="submit">Issue Certificate</button>
-    </form>
+    <!-- Issue Certificate Form -->
+    <app-create-certification [role]="'ca'" *ngIf="activeTab==='issueCerts'" class="dashbord-column"></app-create-certification>
 
     <!-- View My Certificates Table -->
-    <div *ngIf="activeTab==='viewCerts'" class="table-container">
-      <table>
-        <thead>
-        <tr>
-          <th>ID</th>
-          <th>CN</th>
-          <th>O</th>
-          <th>OU</th>
-          <th>C</th>
-          <th>Email</th>
-          <th>Type</th>
-          <th>Validity</th>
-          <th>Status</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr *ngFor="let cert of certificates">
-          <td>{{cert.id}}</td>
-          <td>{{cert.cn}}</td>
-          <td>{{cert.o}}</td>
-          <td>{{cert.ou}}</td>
-          <td>{{cert.c}}</td>
-          <td>{{cert.email}}</td>
-          <td>{{cert.type}}</td>
-          <td>{{cert.validity}}</td>
-          <td>{{cert.status}}</td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-
+    <app-all-certifications [role]="'ca'" *ngIf="activeTab==='viewCerts'" class="dashbord-column" ></app-all-certifications>
+    
     <!-- Manage Templates Table/Form -->
     <div *ngIf="activeTab==='manageTemplates'" class="table-container">
       <table>
@@ -118,7 +37,7 @@
           <th>TTL (days)</th>
           <th>Key Usage</th>
           <th>Extended Key Usage</th>
-          <th>Actions</th>
+          <th colspan="2">Actions</th>
         </tr>
         </thead>
         <tbody>
@@ -132,7 +51,9 @@
           <td>{{template.extendedKeyUsage}}</td>
           <td>
             <button class="edit">Edit</button>
-            <button class="delete">Delete</button>
+          </td>
+          <td>
+            <button class="delete" (click)="openDeleteDialog(template)">Delete</button>
           </td>
         </tr>
         </tbody>
@@ -141,3 +62,11 @@
 
   </div>
 </div>
+
+<app-dialog
+  *ngIf="dialogVisible"
+  [message]="dialogMessage"
+  [type]="dialogType"
+  (close)="onDialogClose()"
+  (confirm)="onDialogConfirm()">
+</app-dialog>

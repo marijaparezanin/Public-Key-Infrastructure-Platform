@@ -1,0 +1,11 @@
+<div class="dialog-backdrop">
+  <div class="dialog-box" [ngClass]="type">
+    <p class="dialog-message">{{ message }}</p>
+
+    <div class="dialog-actions">
+        <button *ngIf="type==='confirm'" (click)="onClose()">Cancel</button>
+        <button *ngIf="type==='confirm'" class="ok" (click)="onConfirm()">OK</button>
+        <button *ngIf="type==='info' || type==='error'" (click)="onClose()">OK</button>
+    </div>
+  </div>
+</div>

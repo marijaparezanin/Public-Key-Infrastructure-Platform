@@ -1,78 +1,60 @@
-import { Component } from '@angular/core';
-import {NavbarComponent} from '../../navbar/navbar.component';
+import { Component, OnInit } from '@angular/core';
+import { CACertificate } from '../../certificate/model/certificate.model';
 import { CommonModule } from '@angular/common';
-
-interface Certificate {
-  id: number;
-  cn: string;
-  o: string;
-  ou: string;
-  c: string;
-  email: string;
-  type: string;
-  validity: number;
-  status: string;
-}
-
-interface CACertificate {
-  id: number;
-  name: string;
-}
-
+import { FormsModule } from '@angular/forms';
+import { NavbarComponent } from '../../navbar/navbar.component';
+import { AllCertificationsComponent } from "../../certificate/all-certificates/all-certificates.component";
+import { EEService } from '../../user/service/ee.service';
+import { DialogComponent, DialogType } from '../../shared/dialog/dialog.component';
 
 @Component({
   selector: 'app-ee-home',
-  imports: [
-    NavbarComponent,
-    CommonModule
-  ],
   templateUrl: './ee-home.component.html',
   standalone: true,
-  styleUrl: './ee-home.component.css'
+  imports: [CommonModule, FormsModule, NavbarComponent, AllCertificationsComponent, DialogComponent],
+  styleUrls: ['../../shared/page.css','../../shared/tabs.css','../../shared/table.css','../../shared/form.css']
 })
-export class EeHomeComponent {
-  // Active tab
+export class EeHomeComponent implements OnInit {
   activeTab: string = 'uploadGenerate';
+  caCertificates: CACertificate[] = [];
 
-  // Mock list of CA Certificates for selection
-  caCertificates: CACertificate[] = [
-    { id: 1, name: 'Org1 Root CA' },
-    { id: 2, name: 'Org1 Intermediate CA' },
-    { id: 3, name: 'Org2 Root CA' }
-  ];
+  dialogVisible = false;
+  dialogMessage = '';
+  dialogType: DialogType = 'info';
 
-  // Mock list of certificates for table views
-  certificates: Certificate[] = [
-    { id: 1, cn: 'user1.ftn.com', o: 'FTN', ou: 'IT', c: 'RS', email: 'user1@ftn.com', type: 'End-Entity', validity: 365, status: 'Valid' },
-    { id: 2, cn: 'device1.ftn.com', o: 'FTN', ou: 'Lab', c: 'RS', email: 'device1@ftn.com', type: 'End-Entity', validity: 180, status: 'Valid' },
-    { id: 3, cn: 'user2.ftn.com', o: 'FTN', ou: 'Admin', c: 'RS', email: 'user2@ftn.com', type: 'End-Entity', validity: 365, status: 'Revoked' }
-  ];
+  constructor(private eeService: EEService) {}
 
-  constructor() {}
+  ngOnInit(): void {
+    this.caCertificates = this.eeService.getAllCACertificates();
+  }
 
-  // Methods to handle form submissions
+  showDialog(message: string, type: DialogType = 'info') {
+    this.dialogMessage = message;
+    this.dialogType = type;
+    this.dialogVisible = true;
+  }
+
+  onDialogClose() {
+    this.dialogVisible = false;
+  }
+
+  onDialogConfirm() {
+    console.log("Confirmed action!");
+    this.dialogVisible = false;
+  }
+
   uploadCSR(formData: any) {
     console.log('Upload CSR:', formData);
-    alert('CSR and Key uploaded successfully!');
+    this.showDialog('CSR and Key uploaded successfully!', 'info');
   }
 
   generateCertificate(formData: any) {
     console.log('Generate Certificate:', formData);
-    alert('Certificate generated successfully!');
+    this.showDialog('Certificate generated successfully!', 'info');
   }
 
   selectCACertificate(selectedCA: CACertificate) {
     console.log('Selected CA Certificate:', selectedCA);
-    alert(`CA Certificate "${selectedCA.name}" selected.`);
-  }
-
-  downloadCertificate(cert: Certificate) {
-    console.log('Download Certificate:', cert);
-    alert(`Downloading certificate ${cert.cn}...`);
-  }
-
-  revokeCertificate(cert: Certificate, reason: string) {
-    console.log('Revoke Certificate:', cert, 'Reason:', reason);
-    alert(`Certificate ${cert.cn} revoked for reason: ${reason}`);
+    this.showDialog(`CA Certificate "${selectedCA.name}" selected.`, 'confirm');
   }
 }

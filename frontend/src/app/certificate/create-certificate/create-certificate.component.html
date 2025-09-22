@@ -1,0 +1,43 @@
+<form class="form" (ngSubmit)="submitCertificate()" #certForm="ngForm">
+  <label>Owner Common Name (CN)</label>
+  <input type="text" [(ngModel)]="certificateForm.commonName" name="commonName" placeholder="CN" required>
+
+  <label>Surname</label>
+  <input type="text" [(ngModel)]="certificateForm.surname" name="surname" placeholder="Surname" required>
+
+  <label>Given Name</label>
+  <input type="text" [(ngModel)]="certificateForm.givenName" name="givenName" placeholder="Given Name" required>
+
+  <label>Organization (O)</label>
+  <input type="text" [(ngModel)]="certificateForm.organization" name="organization" placeholder="Organization" required>
+
+  <label>Organizational Unit (OU)</label>
+  <input type="text" [(ngModel)]="certificateForm.organizationalUnit" name="organizationalUnit" placeholder="OU">
+
+  <label>Country (C)</label>
+  <input type="text" [(ngModel)]="certificateForm.country" name="country" placeholder="Country">
+
+  <label>Email</label>
+  <input type="email" [(ngModel)]="certificateForm.email" name="email" placeholder="Email">
+
+  <label>Certificate Type</label>
+  <select [(ngModel)]="certificateForm.type" name="type">
+    <option *ngIf="role ==='admin'">Root</option>
+    <option>Intermediate</option>
+    <option>End-Entity</option>
+  </select>
+
+  <label>Start Date</label>
+  <input type="date" [(ngModel)]="certificateForm.startDate" name="startDate" required>
+
+  <label>End Date</label>
+  <input type="date" [(ngModel)]="certificateForm.endDate" name="endDate" required>
+
+  <label>Issuer Certificate ID</label>
+  <input type="text" [(ngModel)]="certificateForm.issuerCertificateId" name="issuerCertificateId" placeholder="Issuer ID">
+
+  <label>Extensions (comma-separated)</label>
+  <input type="text" [(ngModel)]="certificateForm.extensions" name="extensions" placeholder="ext1, ext2">
+
+  <button type="submit">Issue Certificate</button>
+</form>

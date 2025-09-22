@@ -7,9 +7,7 @@
   <div class="tabs">
     <button [class.active]="activeTab==='uploadGenerate'" (click)="activeTab='uploadGenerate'">Upload / Generate</button>
     <button [class.active]="activeTab==='selectCA'" (click)="activeTab='selectCA'">Select CA Certificate</button>
-    <button [class.active]="activeTab==='download'" (click)="activeTab='download'">Download Certificate & Key</button>
-    <button [class.active]="activeTab==='viewCerts'" (click)="activeTab='viewCerts'">View My Certificates</button>
-    <button [class.active]="activeTab==='revoke'" (click)="activeTab='revoke'">Revoke Certificate</button>
+    <button [class.active]="activeTab==='revokeAndDownload'" (click)="activeTab='revokeAndDownload'">Revoke/Download Certificate & Key</button>
   </div>
 
   <!-- Tab content -->
@@ -64,86 +62,16 @@
       <button type="submit">Select</button>
     </form>
 
-    <!-- Download Certificates -->
-    <div *ngIf="activeTab==='download'" class="table-container">
-      <table>
-        <thead>
-        <tr>
-          <th>ID</th>
-          <th>CN</th>
-          <th>O</th>
-          <th>OU</th>
-          <th>C</th>
-          <th>Email</th>
-          <th>Type</th>
-          <th>Validity</th>
-          <th>Status</th>
-          <th>Download</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr *ngFor="let cert of certificates">
-          <td>{{cert.id}}</td>
-          <td>{{cert.cn}}</td>
-          <td>{{cert.o}}</td>
-          <td>{{cert.ou}}</td>
-          <td>{{cert.c}}</td>
-          <td>{{cert.email}}</td>
-          <td>{{cert.type}}</td>
-          <td>{{cert.validity}}</td>
-          <td>{{cert.status}}</td>
-          <td>
-            <button class="edit">Download</button>
-          </td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- View My Certificates -->
-    <div *ngIf="activeTab==='viewCerts'" class="table-container">
-      <table>
-        <thead>
-        <tr>
-          <th>ID</th>
-          <th>CN</th>
-          <th>O</th>
-          <th>OU</th>
-          <th>C</th>
-          <th>Email</th>
-          <th>Type</th>
-          <th>Validity</th>
-          <th>Status</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr *ngFor="let cert of certificates">
-          <td>{{cert.id}}</td>
-          <td>{{cert.cn}}</td>
-          <td>{{cert.o}}</td>
-          <td>{{cert.ou}}</td>
-          <td>{{cert.c}}</td>
-          <td>{{cert.email}}</td>
-          <td>{{cert.type}}</td>
-          <td>{{cert.validity}}</td>
-          <td>{{cert.status}}</td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Revoke Certificate Form -->
-    <form *ngIf="activeTab==='revoke'" class="form">
-      <label>Select Certificate to Revoke</label>
-      <select>
-        <option *ngFor="let cert of certificates">{{cert.cn}}</option>
-      </select>
-
-      <label>Reason for Revocation</label>
-      <input type="text" placeholder="Enter reason">
-
-      <button type="submit">Revoke</button>
-    </form>
+    <!-- Revoke and Download Certificates -->
+    <app-all-certifications *ngIf="activeTab==='revokeAndDownload'" [role]="'ee'" class="dashbord-column"></app-all-certifications>
 
   </div>
 </div>
+
+<app-dialog
+  *ngIf="dialogVisible"
+  [message]="dialogMessage"
+  [type]="dialogType"
+  (close)="onDialogClose()"
+  (confirm)="onDialogConfirm()">
+</app-dialog>
