@@ -15,6 +15,7 @@ import com.ftn.pki.utils.cryptography.RSAUtils;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -34,18 +35,20 @@ public class CertificateService {
     private final AESUtils aesUtils;
     private final RSAUtils rsaUtils;
     private final UserService userService;
-    private final SecretKey masterKey = AESUtils.secretKeyFromBase64(System.getenv("MASTER_KEY"));
+    private final SecretKey masterKey;
 
     @Autowired
     public CertificateService(CertificateRepository certificateRepository,
                               CertificateUtils certificateUtils,
                               AESUtils aesUtils, UserService userService,
-                              RSAUtils rsaUtils) {
+                              RSAUtils rsaUtils,
+                              @Value("${MASTER_KEY}") String base64MasterKey) {
         this.certificateRepository = certificateRepository;
         this.certificateUtils = certificateUtils;
         this.aesUtils = aesUtils;
         this.userService = userService;
         this.rsaUtils = rsaUtils;
+        this.masterKey = AESUtils.secretKeyFromBase64(base64MasterKey);
     }
 
     public Certificate createCertificate(CreateCertificateDTO dto) throws Exception {

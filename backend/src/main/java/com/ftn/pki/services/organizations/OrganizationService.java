@@ -4,6 +4,7 @@ import com.ftn.pki.models.organizations.Organization;
 import com.ftn.pki.repositories.organizations.OrganizationRepository;
 import com.ftn.pki.utils.cryptography.AESUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -11,16 +12,16 @@ import java.util.Base64;
 
 @Service
 public class OrganizationService {
-
-
     private final OrganizationRepository organizationRepository;
     private final AESUtils aesUtils;
-    private final SecretKey masterKey = AESUtils.secretKeyFromBase64(System.getenv("MASTER_KEY"));
+    private final SecretKey masterKey;
 
     @Autowired
-    public OrganizationService(OrganizationRepository organizationRepository, AESUtils aesUtils) {
+    public OrganizationService(OrganizationRepository organizationRepository, AESUtils aesUtils,
+                               @Value("${MASTER_KEY}") String base64MasterKey) {
         this.aesUtils = aesUtils;
         this.organizationRepository = organizationRepository;
+        this.masterKey = AESUtils.secretKeyFromBase64(base64MasterKey);
     }
 
     public Organization findOrganizationByName(String name) {

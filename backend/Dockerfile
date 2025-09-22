@@ -11,6 +11,8 @@ RUN ./mvnw package -DskipTests
 FROM bellsoft/liberica-openjdk-alpine-musl:17
 WORKDIR /app
 
+COPY .env .env
+
 COPY src/main/resources/ssl/keystore_server.p12 src/main/resources/ssl/keystore_server.p12
 
 COPY --from=build /app/target/*-SNAPSHOT.jar app.jar
