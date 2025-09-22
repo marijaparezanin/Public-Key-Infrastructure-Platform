@@ -3,6 +3,7 @@ package com.ftn.pki.security;
 
 import com.ftn.pki.models.organizations.Organization;
 import com.ftn.pki.models.users.User;
+import com.ftn.pki.models.users.UserRole;
 import com.ftn.pki.services.organizations.OrganizationService;
 import com.ftn.pki.services.users.UserService;
 import jakarta.servlet.FilterChain;
@@ -10,13 +11,14 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.*;
 
 @Component
 public class JwtUserFilter extends OncePerRequestFilter {
@@ -41,13 +43,31 @@ public class JwtUserFilter extends OncePerRequestFilter {
                 String lastname = String.valueOf(token.getTokenAttributes().get("family_name"));
                 String organizationName = String.valueOf(token.getTokenAttributes().get("organization"));
 
+                Collection<String> roles = token.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .toList();
+
+                // --- Role parsing and priority ---
+                List<UserRole> priority = List.of(UserRole.ROLE_admin, UserRole.ROLE_ca_user, UserRole.ROLE_ee_user);
+                UserRole selectedRole = token.getAuthorities().stream()
+                        .map(a -> {
+                            try {
+                                return UserRole.valueOf(a.getAuthority());
+                            } catch (IllegalArgumentException e) {
+                                return null; // Ignore unknown roles
+                            }
+                        })
+                        .filter(Objects::nonNull)
+                        .min(Comparator.comparingInt(priority::indexOf))
+                        .orElse(UserRole.ROLE_ee_user);
+
                 Organization organization = organizationService.findOrganizationByName(organizationName);
 
                 if (organization == null) {
                     organization = organizationService.registerOrganization(organizationName);
                 }
 
-                this.userService.save(new User(null, keycloakId, email, firstname, lastname, organization));
+                this.userService.save(new User(null, keycloakId, email, firstname, lastname, organization, selectedRole));
             }
         } catch (Exception e) {
             throw new IllegalArgumentException("Unable to save user");

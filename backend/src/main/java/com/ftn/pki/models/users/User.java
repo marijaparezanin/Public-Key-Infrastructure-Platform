@@ -34,4 +34,8 @@ public class User {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "organization_id", nullable = true)
     private Organization organization;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
 }
