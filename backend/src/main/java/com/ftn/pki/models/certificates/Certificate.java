@@ -27,6 +27,7 @@ public class Certificate {
     private Organization organization;
 
     @Column
+    @Enumerated(EnumType.STRING)
     private CertificateType type;
 
     @Column(nullable = false)

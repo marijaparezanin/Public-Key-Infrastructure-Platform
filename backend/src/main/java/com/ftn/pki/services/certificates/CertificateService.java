@@ -135,6 +135,7 @@ public class CertificateService {
         certificateEntity.setPrivateKeyEncrypted(Base64.getDecoder().decode(encryptedSubjectPrivateKey.getCiphertext()));
         certificateEntity.setIv(encryptedSubjectPrivateKey.getIv());
         certificateEntity.setIssuer(issuerCertEntity);
+        certificateEntity.setRevoked(false);
 
         if (!isCertificateValid(certificateEntity)) {
             throw new IllegalArgumentException("Generated certificate is not valid");
