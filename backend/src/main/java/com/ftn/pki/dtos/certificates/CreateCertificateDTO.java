@@ -5,6 +5,8 @@ import lombok.*;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -25,7 +27,7 @@ public class CreateCertificateDTO {
     private Date startDate;
     private Date endDate;
 
-    private List<String> extensions;
+    private Map<String, String> extensions;
 
     private String issuerCertificateId;
 }

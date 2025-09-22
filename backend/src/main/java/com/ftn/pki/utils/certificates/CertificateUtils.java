@@ -4,8 +4,7 @@ import com.ftn.pki.models.certificates.CertificateType;
 import com.ftn.pki.models.certificates.Issuer;
 import com.ftn.pki.models.certificates.Subject;
 import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x509.BasicConstraints;
-import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
@@ -22,7 +21,11 @@ import java.security.Security;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.BiConsumer;
 
 @Component
 public class CertificateUtils {
@@ -30,7 +33,14 @@ public class CertificateUtils {
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    public static X509Certificate generateCertificate(Subject subject, Issuer issuer, Date startDate, Date endDate, String serialNumber, CertificateType type) {
+    public static X509Certificate generateCertificate(Subject subject,
+                                                      Issuer issuer,
+                                                      Date startDate,
+                                                      Date endDate,
+                                                      String serialNumber,
+                                                      CertificateType type,
+                                                      Map<String, String> extensions
+    ) {
         try {
             JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
             builder = builder.setProvider("BC");
@@ -58,6 +68,8 @@ public class CertificateUtils {
                 );
             }
 
+            addExtensions(certGen, extensions);
+
             X509CertificateHolder certHolder = certGen.build(contentSigner);
 
             JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter();
@@ -79,6 +91,90 @@ public class CertificateUtils {
             throw new RuntimeException(e);
         }
         return null;
+    }
+
+    public static final Map<String, BiConsumer<X509v3CertificateBuilder, String>> EXTENSION_HANDLERS =
+            Map.of(
+                    "keyusage", (builder, value) -> {
+                        // value: "digitalSignature,keyEncipherment,dataEncipherment"
+                        int usage = 0;
+                        if (value.contains("digitalSignature")) usage |= KeyUsage.digitalSignature;
+                        if (value.contains("keyEncipherment")) usage |= KeyUsage.keyEncipherment;
+                        if (value.contains("dataEncipherment")) usage |= KeyUsage.dataEncipherment;
+                        if (value.contains("keyCertSign")) usage |= KeyUsage.keyCertSign;
+                        if (value.contains("cRLSign")) usage |= KeyUsage.cRLSign;
+
+                        try {
+                            builder.addExtension(
+                                    Extension.keyUsage,
+                                    true,
+                                    new KeyUsage(usage)
+                            );
+                        } catch (CertIOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    },
+                    "extendedkeyusage", (builder, value) -> {
+                        // value: "serverAuth,clientAuth,emailProtection"
+                        try {
+                            KeyPurposeId[] purposes = Arrays.stream(value.split(","))
+                                    .map(String::trim)
+                                    .map(s -> switch (s) {
+                                        case "serverAuth" -> KeyPurposeId.id_kp_serverAuth;
+                                        case "clientAuth" -> KeyPurposeId.id_kp_clientAuth;
+                                        case "emailProtection" -> KeyPurposeId.id_kp_emailProtection;
+                                        default -> null;
+                                    })
+                                    .filter(Objects::nonNull)
+                                    .toArray(KeyPurposeId[]::new);
+
+                            builder.addExtension(
+                                    Extension.extendedKeyUsage,
+                                    false,
+                                    new ExtendedKeyUsage(purposes)
+                            );
+                        } catch (CertIOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    },
+                    "subjectaltname", (builder, value) -> {
+                        // value: "email@example.com" ili "DNS:example.com"
+                        GeneralName[] names = Arrays.stream(value.split(","))
+                                .map(String::trim)
+                                .map(n -> {
+                                    if (n.startsWith("DNS:")) return new GeneralName(GeneralName.dNSName, n.substring(4));
+                                    if (n.startsWith("email:")) return new GeneralName(GeneralName.rfc822Name, n.substring(6));
+                                    return new GeneralName(GeneralName.otherName, n);
+                                })
+                                .toArray(GeneralName[]::new);
+
+                        GeneralNames subjectAltNames = new GeneralNames(names);
+                        try {
+                            builder.addExtension(
+                                    Extension.subjectAlternativeName,
+                                    false,
+                                    subjectAltNames
+                            );
+                        } catch (CertIOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+            );
+
+    public static void addExtensions(X509v3CertificateBuilder builder, Map<String, String> extensions) {
+        if (extensions == null) return;
+
+        for (Map.Entry<String, String> entry : extensions.entrySet()) {
+            String name = entry.getKey().toLowerCase();
+            String value = entry.getValue();
+
+            BiConsumer<X509v3CertificateBuilder, String> handler = EXTENSION_HANDLERS.get(name);
+            if (handler != null) {
+                handler.accept(builder, value);
+            } else {
+                System.out.println("Unknown extension: " + name);
+            }
+        }
     }
 
 

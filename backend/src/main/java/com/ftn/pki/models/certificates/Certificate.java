@@ -46,9 +46,6 @@ public class Certificate {
     @Column(nullable = false)
     private String iv; // IV for AES encryption of private key with DEK
 
-    @Lob
-    private String extensionsJson;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "issuer_id", nullable = true)
     private Certificate issuer;

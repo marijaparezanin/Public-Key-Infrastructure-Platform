@@ -115,7 +115,8 @@ public class CertificateService {
                 dto.getStartDate(),
                 dto.getEndDate(),
                 new BigInteger(64, new SecureRandom()).toString(), // Serial number
-                dto.getType()
+                dto.getType(),
+                dto.getExtensions()
         );
 
         // --- 6. Encrypt private key with DEK-om ---
@@ -133,7 +134,6 @@ public class CertificateService {
         certificateEntity.setCertificateEncoded(x509Certificate.getEncoded());
         certificateEntity.setPrivateKeyEncrypted(Base64.getDecoder().decode(encryptedSubjectPrivateKey.getCiphertext()));
         certificateEntity.setIv(encryptedSubjectPrivateKey.getIv());
-        certificateEntity.setExtensionsJson(dto.getExtensions() != null ? String.join(",", dto.getExtensions()) : "");
         certificateEntity.setIssuer(issuerCertEntity);
 
         if (!isCertificateValid(certificateEntity)) {
