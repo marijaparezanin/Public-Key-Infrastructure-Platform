@@ -40,13 +40,15 @@ services:
       KC_HTTP_ENABLED: true
       KC_HOSTNAME_STRICT: false
       KC_HOSTNAME: localhost
-    command: ["start-dev"]
+    command: ["start-dev", "--spi-password-policy-provider=pwned-password-policy"]
     ports:
       - "8080:8080"
     depends_on:
       - postgres-keycloak
     networks:
       - app-network
+    volumes:
+      - ./providers/keycloak-pwned-policy.jar:/opt/keycloak/providers/keycloak-pwned-policy.jar
 
   backend:
     build:
