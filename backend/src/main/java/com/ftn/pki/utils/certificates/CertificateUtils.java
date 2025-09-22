@@ -1,8 +1,12 @@
 package com.ftn.pki.utils.certificates;
 
+import com.ftn.pki.models.certificates.CertificateType;
 import com.ftn.pki.models.certificates.Issuer;
 import com.ftn.pki.models.certificates.Subject;
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -26,7 +30,7 @@ public class CertificateUtils {
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    public static X509Certificate generateCertificate(Subject subject, Issuer issuer, Date startDate, Date endDate, String serialNumber) {
+    public static X509Certificate generateCertificate(Subject subject, Issuer issuer, Date startDate, Date endDate, String serialNumber, CertificateType type) {
         try {
             JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
             builder = builder.setProvider("BC");
@@ -39,6 +43,20 @@ public class CertificateUtils {
                     endDate,
                     subject.getX500Name(),
                     subject.getPublicKey());
+
+            if (type == CertificateType.ROOT || type == CertificateType.INTERMEDIATE) {
+                certGen.addExtension(
+                        Extension.basicConstraints,
+                        true,
+                        new BasicConstraints(true) // For CA
+                );
+            } else {
+                certGen.addExtension(
+                        Extension.basicConstraints,
+                        true,
+                        new BasicConstraints(false) // not CA
+                );
+            }
 
             X509CertificateHolder certHolder = certGen.build(contentSigner);
 
@@ -57,6 +75,8 @@ public class CertificateUtils {
             e.printStackTrace();
         } catch (CertificateException e) {
             e.printStackTrace();
+        } catch (CertIOException e) {
+            throw new RuntimeException(e);
         }
         return null;
     }

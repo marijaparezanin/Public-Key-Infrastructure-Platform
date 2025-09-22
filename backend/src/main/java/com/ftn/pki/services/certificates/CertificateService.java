@@ -1,6 +1,7 @@
 package com.ftn.pki.services.certificates;
 
 import com.ftn.pki.dtos.certificates.CreateCertificateDTO;
+import com.ftn.pki.dtos.certificates.SimpleCertificateDTO;
 import com.ftn.pki.models.certificates.Certificate;
 import com.ftn.pki.models.certificates.CertificateType;
 import com.ftn.pki.models.certificates.Issuer;
@@ -26,8 +27,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
-import java.util.Base64;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class CertificateService {
@@ -100,13 +100,22 @@ public class CertificateService {
             issuer = new Issuer(decriptedIssuerPrivateKey, CertificateUtils.getSubjectX500Name(issuerCert));
         }
 
+        if (dto.getType() == CertificateType.END_ENTITY && dto.getIssuerCertificateId() == null) {
+            throw new IllegalArgumentException("End-entity certificate must have an issuer");
+        }
+
+        if (issuerCertEntity != null && issuerCertEntity.getType() == CertificateType.END_ENTITY) {
+            throw new IllegalArgumentException("End-entity certificates cannot act as issuers");
+        }
+
         // --- 5. Generate X509 certificate ---
         X509Certificate x509Certificate = CertificateUtils.generateCertificate(
                 subject,
                 issuer,
                 dto.getStartDate(),
                 dto.getEndDate(),
-                new BigInteger(64, new SecureRandom()).toString() // Serial number
+                new BigInteger(64, new SecureRandom()).toString(), // Serial number
+                dto.getType()
         );
 
         // --- 6. Encrypt private key with DEK-om ---
@@ -134,9 +143,28 @@ public class CertificateService {
         return certificateRepository.save(certificateEntity);
     }
 
-    public Certificate findById(UUID id) {
-        return certificateRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Certificate not found"));
+
+    public Collection<SimpleCertificateDTO> findAllCAForMyOrganization() {
+        User currentUser = userService.getLoggedUser();
+        List<CertificateType> caTypes = List.of(CertificateType.ROOT, CertificateType.INTERMEDIATE);
+        List<Certificate> certs = certificateRepository.findAllByOrganizationAndTypeIn(currentUser.getOrganization(), caTypes);
+        ArrayList<SimpleCertificateDTO> dtos = new ArrayList<>();
+        for (Certificate cert : certs) {
+            try {
+                if (isCertificateValid(cert)) {
+                    dtos.add(new SimpleCertificateDTO(
+                            cert.getId(),
+                            cert.getSerialNumber(),
+                            CertificateUtils.getSubjectX500Name(cert.getX509Certificate())
+                                    .getRDNs(BCStyle.CN)[0].getFirst().getValue().toString(),
+                            cert.getEndDate()
+                    ));
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Error validating certificate: " + e.getMessage());
+            }
+        }
+        return dtos;
     }
 
     public boolean isCertificateValid(Certificate certificate) throws Exception {
