@@ -24,6 +24,9 @@
                             <div id="password-strength-fill" style="height:100%; width:0%; background:red; transition: width 0.3s;"></div>
                         </div>
                         <div id="password-strength-text" style="font-weight:bold; margin-top:3px;">Strength: </div>
+                        <div id="password-disabled-message" style="color:red; font-size:0.9em; margin-top:3px; display:none;">
+                            You cannot register: password is too weak.
+                        </div>
                     </div>
                     <@field.password name="password-confirm" fieldName="password-confirm" required=true label=msg("passwordConfirm") autocomplete="new-password"/>
                 </#if>
@@ -56,6 +59,7 @@
             const passwordField = document.querySelector('input[name="password"]');
             const strengthFill = document.getElementById('password-strength-fill');
             const strengthText = document.getElementById('password-strength-text');
+            const disabledMessage = document.getElementById('password-disabled-message');
             const submitBtn = document.getElementById('kc-submit');
 
             const colors = ["#ff4d4f", "#ff7a45", "#ffa940", "#bae637", "#52c41a"];
@@ -82,7 +86,13 @@
                 }
 
                 // Enable submit only if score >= 2 ("Fair")
-                submitBtn.disabled = score < 2;
+                if(score >= 2){
+                    submitBtn.disabled = false;
+                    disabledMessage.style.display = "none";
+                } else {
+                    submitBtn.disabled = true;
+                    disabledMessage.style.display = "block";
+                }
             });
         });
     </script>
