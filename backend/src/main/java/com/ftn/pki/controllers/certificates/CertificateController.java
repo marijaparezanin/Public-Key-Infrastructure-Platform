@@ -1,4 +1,4 @@
-package com.ftn.pki.controllers;
+package com.ftn.pki.controllers.certificates;
 
 import com.ftn.pki.dtos.certificates.CreateCertificateDTO;
 import com.ftn.pki.dtos.certificates.CreatedCertificateDTO;
