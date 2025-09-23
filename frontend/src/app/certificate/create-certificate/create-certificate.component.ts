@@ -4,6 +4,8 @@ import { AbstractControl, FormsModule, NgForm } from '@angular/forms';
 import { CertificateType, CreateCertificateDto, SimpleCertificate } from '../model/certificate.model';
 import { DialogComponent } from "../../shared/dialog/dialog.component";
 import { CertificateService } from '../service/certificate.service';
+import { Organization } from '../model/organization.model';
+import { OrganizationService } from '../service/organziation.service';
 
 @Component({
   selector: 'app-create-certification',
@@ -30,11 +32,10 @@ export class CreateCertificationComponent implements OnInit {
     email: '',
     startDate: null,
     endDate: null,
-    extensions: {},   // ✅ Record<string,string>
-    issuerCertificateId: ''
+    extensions: {}, 
+    issuerCertificateId: '',
+    assignToOrganizationName: null
   };
-
-  availableCertificates: SimpleCertificate[] = [];
 
   supportedExtensions = [
     'keyusage',
@@ -46,31 +47,39 @@ export class CreateCertificationComponent implements OnInit {
     'crldistributionpoints',
     'authorityinfoaccess'
   ];
+  extensionEntries: Map<string,string> = new Map<string,string>();
 
-  constructor(private certificateService: CertificateService) {}
+  availableCertificates: SimpleCertificate[] = [];
+  allOrganizations: Organization[] = [];
+  
+  constructor(private certificateService: CertificateService, private organizationService:OrganizationService) {}
 
   ngOnInit() {
     this.certificateService.getSimpleCertificates().subscribe(cers => {
       this.availableCertificates = cers;
     });
+    this.organizationService.getAll().subscribe(orgs => {
+      this.allOrganizations = orgs;
+    })
   }
 
   addExtension() {
     const availableKey = this.supportedExtensions.find(
-      key => !(key in this.certificateForm.extensions)
+      key => !this.extensionEntries.has(key)
     );
     if (availableKey) {
-      this.certificateForm.extensions[availableKey] = '';
+      this.extensionEntries.set(availableKey, '');
     }
   }
 
   removeExtension(key: string) {
-    delete this.certificateForm.extensions[key];
+    this.extensionEntries.delete(key);
   }
 
-  isKeyDisabled(key: string): boolean {
-    return key in this.certificateForm.extensions;
+  isKeyDisabled(key: string, currentKey: string): boolean {
+    return this.extensionEntries.has(key) && key !== currentKey;
   }
+
 
   customRequired(control: AbstractControl, message: string) {
     return control.value ? null : { required: message };
@@ -89,6 +98,7 @@ export class CreateCertificationComponent implements OnInit {
       this.certificateForm.type = CertificateType['END_ENTITY'];
     }
 
+    this.certificateForm.extensions
     console.log('Issuing certificate:', this.certificateForm);
     this.certificateService.createCertificate(this.certificateForm).subscribe();
   }
