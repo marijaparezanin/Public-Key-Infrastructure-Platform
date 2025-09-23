@@ -2,10 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { AbstractControl, FormsModule, NgForm } from '@angular/forms';
 import { CertificateType, CreateCertificateDto, SimpleCertificate } from '../model/certificate.model';
-import { AdminService } from '../../user/service/admin.service';
-import { CAService } from '../../user/service/ca.service';
-import { EEService } from '../../user/service/ee.service';
 import { DialogComponent } from "../../shared/dialog/dialog.component";
+import { CertificateService } from '../service/certificate.service';
 
 interface ExtensionEntry {
   key: string;
@@ -48,17 +46,12 @@ export class CreateCertificationComponent implements OnInit{
       'authorityKeyIdentifier'
   ];
   extensionEntries: ExtensionEntry[] = [];
-  constructor(private adminService:AdminService, private caService:CAService, private eeService:EEService){}
+  constructor(private certificateService: CertificateService){}
 
   ngOnInit(){
-    switch(this.role){
-      case ('admin'):
-        this.availableCertificates=this.adminService.getSimpleCertificates();
-        return;
-      case ('ca'):
-        this.availableCertificates=this.caService.getSimpleCertificates();
-        return;
-    }
+    this.certificateService.getSimpleCertificates().subscribe(cers=>{
+      this.availableCertificates=cers;
+    });
   }
 
   addExtension() {

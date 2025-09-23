@@ -22,7 +22,7 @@ export interface CreateCertificateDto {
 }
 
 export interface Certificate {
-    id: number;
+    id: string;
     organization: Organization;
     type: CertificateType;
     serialNumber: string;
@@ -33,11 +33,6 @@ export interface Certificate {
     iv: string;
     extensionsJson?: string;
     revoked: boolean;
-}
-
-export interface CACertificate {
-  id: number;
-  name: string;
 }
 
 export interface SimpleCertificate {

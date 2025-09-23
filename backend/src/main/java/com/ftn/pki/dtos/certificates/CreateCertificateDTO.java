@@ -4,9 +4,7 @@ import com.ftn.pki.models.certificates.CertificateType;
 import lombok.*;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @AllArgsConstructor
 @NoArgsConstructor

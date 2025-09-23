@@ -2,10 +2,8 @@ import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Certificate } from '../model/certificate.model';
-import { EEService } from '../../user/service/ee.service';
-import { AdminService } from '../../user/service/admin.service';
-import { CAService } from '../../user/service/ca.service';
 import { DialogComponent } from '../../shared/dialog/dialog.component';
+import { CertificateService } from '../service/certificate.service';
 
 @Component({
   selector: 'app-all-certifications',
@@ -24,19 +22,13 @@ export class AllCertificationsComponent implements OnInit {
   selectedCert: Certificate | null = null;
 
   constructor(
-    private adminService: AdminService,
-    private eeService: EEService,
-    private caService: CAService
+    private certificateService: CertificateService
   ) {}
 
   ngOnInit() {
-    if (this.role === 'admin') {
-      this.certificates = this.adminService.getAllCertificates();
-    } else if (this.role === 'ca') {
-      this.certificates = this.eeService.getAllCertificates();
-    } else if (this.role === 'ee') {
-      this.certificates = this.caService.getAllCertificates();
-    }
+    this.certificateService.getAllCertificates().subscribe(cers=>{
+      this.certificates = cers;
+    })
   }
 
   revokeCertificate(cert: Certificate) {

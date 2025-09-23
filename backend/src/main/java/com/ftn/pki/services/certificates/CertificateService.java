@@ -33,23 +33,17 @@ import java.util.*;
 public class CertificateService {
 
     private final CertificateRepository certificateRepository;
-    private final CertificateUtils certificateUtils;
     private final AESUtils aesUtils;
-    private final RSAUtils rsaUtils;
     private final UserService userService;
     private final SecretKey masterKey;
 
     @Autowired
     public CertificateService(CertificateRepository certificateRepository,
-                              CertificateUtils certificateUtils,
                               AESUtils aesUtils, UserService userService,
-                              RSAUtils rsaUtils,
                               @Value("${MASTER_KEY}") String base64MasterKey) {
         this.certificateRepository = certificateRepository;
-        this.certificateUtils = certificateUtils;
         this.aesUtils = aesUtils;
         this.userService = userService;
-        this.rsaUtils = rsaUtils;
         this.masterKey = AESUtils.secretKeyFromBase64(base64MasterKey);
     }
 
@@ -202,5 +196,7 @@ public class CertificateService {
         return RSAUtils.base64ToPrivateKey(decryptedPrivateKeyBase64);
 
     }
+
+    public List<Certificate> findAll(){return certificateRepository.findAll();}
 }
 
