@@ -14,14 +14,13 @@
     width: 100%;
 }
 
-.form label {
+label {
   font-weight: 500;
   margin-bottom: 0.25rem;
   color: #333;
 }
 
-.form input,
-.form select
+input, select
  {
   padding: 0.75rem 1rem;
   border-radius: 8px;
@@ -30,8 +29,8 @@
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.form input:focus,
-.form select:focus{
+input:focus,
+select:focus{
   outline: none;
   border-color: var(--green-color);
   box-shadow: 0 0 0 3px rgba(103, 144, 6, 0.2);
@@ -80,4 +79,8 @@
 .error{
   color: red;
   font-size: small;
+}
+
+.no-show{
+  display: contents;
 }

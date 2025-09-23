@@ -19,6 +19,20 @@ export interface CreateCertificateDto {
   endDate: Date|null;
   extensions: Record<string, string>;
   issuerCertificateId: string;
+  assignToOrganizationName: string|null;
+}
+
+export interface CreatedCertificateDto {
+  commonName: string;
+  surname: string;
+  givenName: string;
+  organization: string;
+  organizationalUnit: string;
+  country: string;
+  email: string;
+  startDate: Date|null;
+  endDate: Date|null;
+  extensions: Record<string, string>;
 }
 
 export interface Certificate {
