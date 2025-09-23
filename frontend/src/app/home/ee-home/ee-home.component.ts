@@ -6,6 +6,7 @@ import { AllCertificationsComponent } from "../../certificate/all-certificates/a
 import { DialogComponent, DialogType } from '../../shared/dialog/dialog.component';
 import { CreateCertificationComponent } from "../../certificate/create-certificate/create-certificate.component";
 import {CertificateService} from '../../certificate/service/certificate.service';
+import { SimpleCertificate } from '../../certificate/model/certificate.model';
 
 @Component({
   selector: 'app-ee-home',
@@ -16,16 +17,18 @@ import {CertificateService} from '../../certificate/service/certificate.service'
 })
 export class EeHomeComponent implements OnInit {
   activeTab: string = 'uploadGenerate';
-  //caCertificates: CACertificate[] = [];
+  caCertificates: SimpleCertificate[] = [];
 
   dialogVisible = false;
   dialogMessage = '';
   dialogType: DialogType = 'info';
 
-  constructor(private eeService: CertificateService) {}
+  constructor(private certificateService: CertificateService) {}
 
   ngOnInit(): void {
-    //this.caCertificates = this.eeService.getAllCACertificates();
+    this.certificateService.getSimpleCertificates().subscribe(cers=>{
+      this.caCertificates = cers;
+    });
   }
 
   showDialog(message: string, type: DialogType = 'info') {
@@ -53,8 +56,8 @@ export class EeHomeComponent implements OnInit {
     this.showDialog('Certificate generated successfully!', 'info');
   }
 
-  /**selectCACertificate(selectedCA: CACertificate) {
+  selectCACertificate(selectedCA: SimpleCertificate) {
     console.log('Selected CA Certificate:', selectedCA);
-    this.showDialog(`CA Certificate "${selectedCA.name}" selected.`, 'confirm');
-  }**/
+    this.showDialog(`CA Certificate "${selectedCA.subjectCommonName}" selected.`, 'confirm');
+  }
 }
