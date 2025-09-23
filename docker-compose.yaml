@@ -28,7 +28,9 @@ services:
       - app-network
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.3.3
+    build:
+      context: .
+      dockerfile: Dockerfile.keycloak
     container_name: keycloak
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
@@ -40,16 +42,15 @@ services:
       KC_HTTP_ENABLED: true
       KC_HOSTNAME_STRICT: false
       KC_HOSTNAME: localhost
-    command: ["start-dev", "--spi-password-policy-provider=pwned-password-policy"]
+      KC_THEME: custom-theme
+    command: ["start-dev"]
     ports:
       - "8080:8080"
     depends_on:
       - postgres-keycloak
     networks:
       - app-network
-    volumes:
-      - ./providers/keycloak-pwned-policy.jar:/opt/keycloak/providers/keycloak-pwned-policy.jar
-
+      
   backend:
     build:
       context: ./backend
