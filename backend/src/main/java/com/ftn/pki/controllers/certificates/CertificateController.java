@@ -54,4 +54,18 @@ public class CertificateController {
     public ResponseEntity<Collection<SimpleCertificateDTO>> getAll(){
         return ResponseEntity.ok(certificateService.findAllSimple());
     }
+
+    @GetMapping("/revoke/{id}")
+    public ResponseEntity<Void> revokeCertificate(@PathVariable String id){
+        try {
+            certificateService.revokeCertificate(id);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .build();
+        }
+    }
+
 }

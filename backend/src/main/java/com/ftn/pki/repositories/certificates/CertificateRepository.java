@@ -14,4 +14,6 @@ public interface CertificateRepository extends JpaRepository<Certificate, UUID> 
     List<Certificate> findAllByOrganizationId(UUID id);
 
     List<Certificate> findAllByUserId(UUID id);
+
+    List<Certificate> findAllByIssuerId(UUID id);
 }

@@ -274,5 +274,36 @@ public class CertificateService {
         }
         return dtos;
     }
+
+    public void revokeCertificate(String id) {
+        Certificate cert = certificateRepository.findById(UUID.fromString(id))
+                .orElseThrow(() -> new IllegalArgumentException("Certificate not found"));
+
+        User currentUser = userService.getLoggedUser();
+        if (currentUser.getRole() == UserRole.ROLE_ee_user) {
+            if (!cert.getUser().getId().equals(currentUser.getId())) {
+                throw new IllegalArgumentException("EE users can only revoke their own certificates");
+            }
+        } else if (currentUser.getRole() == UserRole.ROLE_ca_user) {
+            if (!cert.getOrganization().getId().equals(currentUser.getOrganization().getId())) {
+                throw new IllegalArgumentException("CA users can only revoke certificates within their organization");
+            }
+        } else if (currentUser.getRole() != UserRole.ROLE_admin) {
+            throw new IllegalArgumentException("Unknown user role");
+        }
+
+        if (cert.isRevoked()) {
+            throw new IllegalArgumentException("Certificate is already revoked");
+        }
+
+        cert.setRevoked(true);
+        certificateRepository.save(cert);
+
+        for (Certificate childCert : certificateRepository.findAllByIssuerId(cert.getId())) {
+            if (!childCert.isRevoked()) {
+                revokeCertificate(childCert.getId().toString());
+            }
+        }
+    }
 }
 
