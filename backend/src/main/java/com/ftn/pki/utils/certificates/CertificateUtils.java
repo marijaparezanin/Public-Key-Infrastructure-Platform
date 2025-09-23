@@ -14,6 +14,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.util.encoders.Hex;
 import org.springframework.stereotype.Component;
 
 import java.math.BigInteger;
@@ -21,10 +22,7 @@ import java.security.Security;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 @Component
@@ -158,7 +156,89 @@ public class CertificateUtils {
                         } catch (CertIOException e) {
                             throw new RuntimeException(e);
                         }
+                    },
+                    "keycertsign", (builder, value) -> {
+                        // value: "true" or "false"
+                        try {
+                            int usage = KeyUsage.keyCertSign;
+                            builder.addExtension(
+                                    Extension.keyUsage,
+                                    true,
+                                    new KeyUsage(usage)
+                            );
+                        } catch (CertIOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    },
+                    "digitalsignature", (builder, value) -> {
+                        // value: "true" or "false"
+                        try {
+                            int usage = KeyUsage.digitalSignature;
+                            builder.addExtension(
+                                    Extension.keyUsage,
+                                    true,
+                                    new KeyUsage(usage)
+                            );
+                        } catch (CertIOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    },
+                    "crldistributionpoints", (builder, value) -> {
+                        // value: "http://example.com/crl1,http://example.com/crl2"
+                        try {
+                            DistributionPoint[] points = Arrays.stream(value.split(","))
+                                    .map(String::trim)
+                                    .map(uri -> {
+                                        GeneralName gn = new GeneralName(GeneralName.uniformResourceIdentifier, uri);
+                                        GeneralNames gns = new GeneralNames(gn);
+                                        return new DistributionPoint(new DistributionPointName(gns), null, null);
+                                    })
+                                    .toArray(DistributionPoint[]::new);
+
+                            builder.addExtension(
+                                    Extension.cRLDistributionPoints,
+                                    false,
+                                    new CRLDistPoint(points)
+                            );
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    },
+                    "authorityinfoaccess", (builder, value) -> {
+                        // value: "ocsp:http://ocsp.example.com,caIssuers:http://ca.example.com/ca.crt"
+                        try {
+                            List<AccessDescription> accessList = new ArrayList<>();
+                            for (String entry : value.split(",")) {
+                                String[] parts = entry.split(":", 2);
+                                if (parts.length == 2) {
+                                    if (parts[0].equalsIgnoreCase("ocsp")) {
+                                        accessList.add(new AccessDescription(
+                                                AccessDescription.id_ad_ocsp,
+                                                new GeneralName(GeneralName.uniformResourceIdentifier, parts[1])
+                                        ));
+                                    } else if (parts[0].equalsIgnoreCase("caIssuers")) {
+                                        accessList.add(new AccessDescription(
+                                                AccessDescription.id_ad_caIssuers,
+                                                new GeneralName(GeneralName.uniformResourceIdentifier, parts[1])
+                                        ));
+                                    }
+                                }
+                            }
+
+                            AuthorityInformationAccess aia = new AuthorityInformationAccess(
+                                    accessList.toArray(new AccessDescription[0])
+                            );
+
+                            builder.addExtension(
+                                    Extension.authorityInfoAccess,
+                                    false,
+                                    aia
+                            );
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
                     }
+
             );
 
     public static void addExtensions(X509v3CertificateBuilder builder, Map<String, String> extensions) {

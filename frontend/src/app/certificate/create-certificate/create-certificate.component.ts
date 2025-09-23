@@ -39,11 +39,14 @@ export class CreateCertificationComponent implements OnInit{
   };
   availableCertificates:SimpleCertificate[]=[];
   supportedExtensions = [
-      'keyCertSign',
-      'digitalSignature',
+      'keyusage',
+      'extendedkeyusage',
+      'subjectaltname',
+      'keycertsign',
+      'digitalsignature',
       'basicConstraints',
-      'subjectAltName',
-      'authorityKeyIdentifier'
+      'crldistributionpoints',
+      'authorityinfoaccess'
   ];
   extensionEntries: ExtensionEntry[] = [];
   constructor(private certificateService: CertificateService){}
@@ -66,7 +69,7 @@ export class CreateCertificationComponent implements OnInit{
   removeExtension(index: number) {
     this.extensionEntries.splice(index, 1);
   }
-  
+
   isKeyDisabled(key: string, currentEntry: ExtensionEntry): boolean {
     return this.extensionEntries.some(e => e.key === key && e !== currentEntry);
   }
@@ -90,9 +93,10 @@ export class CreateCertificationComponent implements OnInit{
 
     this.certificateForm.extensions = this.extensionEntries.map(e => `${e.key}=${e.value}`);
     console.log('Issuing certificate:', this.certificateForm);
+    this.certificateService.createCertificate(this.certificateForm).subscribe()
   }
 
-  
+
   showDialogError(message: string) {
     this.dialogMessage = message;
     this.dialogType = 'error';
