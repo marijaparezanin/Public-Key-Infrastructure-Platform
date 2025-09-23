@@ -16,7 +16,6 @@ import com.ftn.pki.services.users.UserService;
 import com.ftn.pki.utils.certificates.CertificateUtils;
 import com.ftn.pki.utils.cryptography.AESUtils;
 import com.ftn.pki.utils.cryptography.RSAUtils;
-import org.aspectj.weaver.ast.Or;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
@@ -32,6 +31,8 @@ import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.*;
+
+import static com.ftn.pki.utils.certificates.CertificateUtils.getRDNValue;
 
 @Service
 public class CertificateService {
@@ -173,13 +174,23 @@ public class CertificateService {
         for (Certificate cert : certs) {
             try {
                 if (isCertificateValid(cert)) {
+                    X500Name subjectX500Name = CertificateUtils.getSubjectX500Name(cert.getX509Certificate());
                     dtos.add(new SimpleCertificateDTO(
                             cert.getId(),
-                            cert.getSerialNumber(),
-                            CertificateUtils.getSubjectX500Name(cert.getX509Certificate())
-                                    .getRDNs(BCStyle.CN)[0].getFirst().getValue().toString(),
-                            cert.getEndDate()
-                    ));
+                            cert.getType(), // CertificateType
+                            getRDNValue(subjectX500Name, BCStyle.CN),
+                            getRDNValue(subjectX500Name, BCStyle.SURNAME),
+                            getRDNValue(subjectX500Name, BCStyle.GIVENNAME),
+                            getRDNValue(subjectX500Name, BCStyle.O),
+                            getRDNValue(subjectX500Name, BCStyle.OU),
+                            getRDNValue(subjectX500Name, BCStyle.C),
+                            getRDNValue(subjectX500Name, BCStyle.E),
+                            cert.getStartDate(),
+                            cert.getEndDate(),
+                            cert.isRevoked(),
+                            isCertificateValid(cert)
+                            )
+                    );
                 }
             } catch (Exception e) {
                 throw new RuntimeException("Error validating certificate: " + e.getMessage());
@@ -223,6 +234,45 @@ public class CertificateService {
 
     }
 
-    public List<Certificate> findAll(){return certificateRepository.findAll();}
+    public Collection<SimpleCertificateDTO> findAllSimple(){
+        List<Certificate> certs = null;
+        ArrayList<SimpleCertificateDTO> dtos = new ArrayList<>();
+        switch (userService.getLoggedUser().getRole()){
+            case ROLE_ee_user -> {
+                certs = certificateRepository.findAllByUserId(userService.getLoggedUser().getId());
+            }
+            case ROLE_ca_user -> {
+                certs = certificateRepository.findAllByOrganizationId(userService.getLoggedUser().getOrganization().getId());
+            }
+            case ROLE_admin -> {
+                certs = certificateRepository.findAll();
+            }
+            default -> throw new IllegalArgumentException("Unknown role");
+        }
+
+        for (Certificate cert : certs) {
+            try {
+                X500Name subjectX500Name = CertificateUtils.getSubjectX500Name(cert.getX509Certificate());
+                SimpleCertificateDTO dto = new SimpleCertificateDTO(
+                        cert.getId(),
+                        cert.getType(), // CertificateType
+                        getRDNValue(subjectX500Name, BCStyle.CN),
+                        getRDNValue(subjectX500Name, BCStyle.SURNAME),
+                        getRDNValue(subjectX500Name, BCStyle.GIVENNAME),
+                        getRDNValue(subjectX500Name, BCStyle.O),
+                        getRDNValue(subjectX500Name, BCStyle.OU),
+                        getRDNValue(subjectX500Name, BCStyle.C),
+                        getRDNValue(subjectX500Name, BCStyle.E),
+                        cert.getStartDate(),
+                        cert.getEndDate(),
+                        cert.isRevoked(),
+                        isCertificateValid(cert)
+                );
+            } catch (Exception e) {
+                throw new RuntimeException("Error validating certificate: " + e.getMessage());
+            }
+        }
+        return dtos;
+    }
 }
 

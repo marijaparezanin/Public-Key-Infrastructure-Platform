@@ -3,7 +3,6 @@ package com.ftn.pki.controllers.certificates;
 import com.ftn.pki.dtos.certificates.CreateCertificateDTO;
 import com.ftn.pki.dtos.certificates.CreatedCertificateDTO;
 import com.ftn.pki.dtos.certificates.SimpleCertificateDTO;
-import com.ftn.pki.models.certificates.Certificate;
 import com.ftn.pki.services.certificates.CertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collection;
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/certificates")
@@ -41,7 +39,7 @@ public class CertificateController {
         }
     }
 
-    @GetMapping("/ca")
+    @GetMapping("/applicable-ca")
     public ResponseEntity<Collection<SimpleCertificateDTO>> getAllCAForOrganization() {
         try {
             Collection<SimpleCertificateDTO> caCertificates = certificateService.findAllCAForMyOrganization();
@@ -53,7 +51,7 @@ public class CertificateController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<Certificate>> getAll(){
-        return ResponseEntity.ok(certificateService.findAll());
+    public ResponseEntity<Collection<SimpleCertificateDTO>> getAll(){
+        return ResponseEntity.ok(certificateService.findAllSimple());
     }
 }

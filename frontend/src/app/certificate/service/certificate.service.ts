@@ -7,7 +7,7 @@ import { Certificate, CreateCertificateDto, SimpleCertificate } from '../../cert
 @Injectable({ providedIn: 'root' })
 export class CertificateService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.serverUrl}/certificates`; 
+  private apiUrl = `${environment.serverUrl}/certificates`;
 
   createCertificate(dto: CreateCertificateDto): Observable<Certificate> {
     return this.http.post<Certificate>(`${this.apiUrl}`, dto);
@@ -18,7 +18,7 @@ export class CertificateService {
   }
 
   getSimpleCertificates():Observable<SimpleCertificate[]>{
-      return this.http.get<SimpleCertificate[]>(`${this.apiUrl}/ca`);
+      return this.http.get<SimpleCertificate[]>(`${this.apiUrl}/applicable-ca`);
   }
-  
+
 }
