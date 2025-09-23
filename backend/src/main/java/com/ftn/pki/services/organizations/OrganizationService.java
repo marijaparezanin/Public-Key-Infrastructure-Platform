@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.util.Base64;
+import java.util.List;
 
 @Service
 public class OrganizationService {
@@ -26,6 +27,10 @@ public class OrganizationService {
 
     public Organization findOrganizationByName(String name) {
         return organizationRepository.findByName(name);
+    }
+
+    public List<Organization> findAll() {
+        return organizationRepository.findAll();
     }
 
     public Organization save(Organization data) {

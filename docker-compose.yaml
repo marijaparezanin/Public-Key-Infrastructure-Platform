@@ -24,6 +24,8 @@ services:
       POSTGRES_PASSWORD: admin
     ports:
       - "5434:5432"
+    volumes:
+      - backend-db-data:/var/lib/postgresql/data
     networks:
       - app-network
 
@@ -93,3 +95,4 @@ networks:
 
 volumes:
   keycloak-db-data:
+  backend-db-data:

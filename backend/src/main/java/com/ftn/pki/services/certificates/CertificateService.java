@@ -1,6 +1,7 @@
 package com.ftn.pki.services.certificates;
 
 import com.ftn.pki.dtos.certificates.CreateCertificateDTO;
+import com.ftn.pki.dtos.certificates.CreatedCertificateDTO;
 import com.ftn.pki.dtos.certificates.SimpleCertificateDTO;
 import com.ftn.pki.models.certificates.Certificate;
 import com.ftn.pki.models.certificates.CertificateType;
@@ -8,11 +9,14 @@ import com.ftn.pki.models.certificates.Issuer;
 import com.ftn.pki.models.certificates.Subject;
 import com.ftn.pki.models.organizations.Organization;
 import com.ftn.pki.models.users.User;
+import com.ftn.pki.models.users.UserRole;
 import com.ftn.pki.repositories.certificates.CertificateRepository;
+import com.ftn.pki.services.organizations.OrganizationService;
 import com.ftn.pki.services.users.UserService;
 import com.ftn.pki.utils.certificates.CertificateUtils;
 import com.ftn.pki.utils.cryptography.AESUtils;
 import com.ftn.pki.utils.cryptography.RSAUtils;
+import org.aspectj.weaver.ast.Or;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
@@ -36,20 +40,27 @@ public class CertificateService {
     private final AESUtils aesUtils;
     private final UserService userService;
     private final SecretKey masterKey;
+    private final OrganizationService organizationService;
 
     @Autowired
     public CertificateService(CertificateRepository certificateRepository,
                               AESUtils aesUtils, UserService userService,
-                              @Value("${MASTER_KEY}") String base64MasterKey) {
+                              @Value("${MASTER_KEY}") String base64MasterKey, OrganizationService organizationService) {
         this.certificateRepository = certificateRepository;
         this.aesUtils = aesUtils;
         this.userService = userService;
         this.masterKey = AESUtils.secretKeyFromBase64(base64MasterKey);
+        this.organizationService = organizationService;
     }
 
-    public Certificate createCertificate(CreateCertificateDTO dto) throws Exception {
+    public CreatedCertificateDTO createCertificate(CreateCertificateDTO dto) throws Exception {
         User currentUser = userService.getLoggedUser();
-        Organization organization = currentUser.getOrganization();
+        Organization organization = null;
+        if (currentUser.getRole() == UserRole.ROLE_admin && dto.getType() == CertificateType.INTERMEDIATE) {
+            organization = organizationService.findOrganizationByName(dto.getAssignToOrganizationName());
+        } else {
+            organization = currentUser.getOrganization();
+        }
         if (organization == null) {
             throw new IllegalArgumentException("User does not belong to any organization");
         }
@@ -75,7 +86,7 @@ public class CertificateService {
         // --- 4. Fetch Issuer ---
         Issuer issuer;
         Certificate issuerCertEntity = null;
-        if (dto.getIssuerCertificateId() == null && dto.getType() == CertificateType.ROOT) {
+        if (dto.getIssuerCertificateId().isEmpty() && dto.getType() == CertificateType.ROOT) {
             // Self-signed Root
             issuer = new Issuer(subjectPrivateKey, subjectX500);
         } else {
@@ -130,14 +141,29 @@ public class CertificateService {
         certificateEntity.setIv(encryptedSubjectPrivateKey.getIv());
         certificateEntity.setIssuer(issuerCertEntity);
         certificateEntity.setRevoked(false);
+        certificateEntity.setUser(currentUser);
 
         if (!isCertificateValid(certificateEntity)) {
             throw new IllegalArgumentException("Generated certificate is not valid");
         }
 
-        return certificateRepository.save(certificateEntity);
-    }
+        certificateRepository.save(certificateEntity);
 
+        return new CreatedCertificateDTO(
+                certificateEntity.getId(),
+                certificateEntity.getType(),
+                dto.getCommonName(),
+                dto.getSurname(),
+                dto.getGivenName(),
+                dto.getOrganization(),
+                dto.getOrganizationalUnit(),
+                dto.getCountry(),
+                dto.getEmail(),
+                certificateEntity.getStartDate(),
+                certificateEntity.getEndDate(),
+                dto.getExtensions()
+        );
+    }
 
     public Collection<SimpleCertificateDTO> findAllCAForMyOrganization() {
         User currentUser = userService.getLoggedUser();

@@ -1,6 +1,7 @@
 package com.ftn.pki.controllers;
 
 import com.ftn.pki.dtos.certificates.CreateCertificateDTO;
+import com.ftn.pki.dtos.certificates.CreatedCertificateDTO;
 import com.ftn.pki.dtos.certificates.SimpleCertificateDTO;
 import com.ftn.pki.models.certificates.Certificate;
 import com.ftn.pki.services.certificates.CertificateService;
@@ -8,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import io.swagger.v3.oas.annotations.Operation;
 
 import java.util.Collection;
 import java.util.List;
@@ -24,21 +24,23 @@ public class CertificateController {
         this.certificateService = certificateService;
     }
 
-    @Operation(summary="Endpoint za kreiranje sertifikata")
     @PostMapping()
-    public ResponseEntity<Certificate> createCertificate(@RequestBody CreateCertificateDTO dto) {
+    public ResponseEntity<CreatedCertificateDTO> createCertificate(@RequestBody CreateCertificateDTO dto) {
         try {
-            Certificate certificate = certificateService.createCertificate(dto);
+            CreatedCertificateDTO certificate = certificateService.createCertificate(dto);
             return ResponseEntity.ok(certificate);
         } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            System.out.println(e.toString());
             return ResponseEntity.badRequest().body(null);
         } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(e.toString());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(null);
         }
     }
 
-    @Operation(summary = "Endpoint za listu dostupnih CA sertifikata za trenutnu organizaciju")
     @GetMapping("/ca")
     public ResponseEntity<Collection<SimpleCertificateDTO>> getAllCAForOrganization() {
         try {
@@ -50,7 +52,6 @@ public class CertificateController {
         }
     }
 
-    @Operation(summary = "Admin can see all certificates")
     @GetMapping("/all")
     public ResponseEntity<List<Certificate>> getAll(){
         return ResponseEntity.ok(certificateService.findAll());
