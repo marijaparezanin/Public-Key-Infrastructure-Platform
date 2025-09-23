@@ -2,11 +2,13 @@ package com.ftn.pki.services.certificates;
 
 import com.ftn.pki.dtos.certificates.CreateCertificateDTO;
 import com.ftn.pki.dtos.certificates.CreatedCertificateDTO;
+import com.ftn.pki.dtos.certificates.DownloadRequestDTO;
 import com.ftn.pki.dtos.certificates.SimpleCertificateDTO;
 import com.ftn.pki.models.certificates.Certificate;
 import com.ftn.pki.models.certificates.CertificateType;
 import com.ftn.pki.models.certificates.Issuer;
 import com.ftn.pki.models.certificates.Subject;
+import com.ftn.pki.models.certificates.KEYSTOREDOWNLOADFORMAT;
 import com.ftn.pki.models.organizations.Organization;
 import com.ftn.pki.models.users.User;
 import com.ftn.pki.models.users.UserRole;
@@ -16,6 +18,7 @@ import com.ftn.pki.services.users.UserService;
 import com.ftn.pki.utils.certificates.CertificateUtils;
 import com.ftn.pki.utils.cryptography.AESUtils;
 import com.ftn.pki.utils.cryptography.RSAUtils;
+import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
@@ -25,10 +28,7 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.math.BigInteger;
-import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.SecureRandom;
+import java.security.*;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
@@ -102,7 +102,7 @@ public class CertificateService {
             }
 
             X509Certificate issuerCert = issuerCertEntity.getX509Certificate();
-            PrivateKey decriptedIssuerPrivateKey = loadAndDecryptPrivateKeyForIssuer(issuerCertEntity);
+            PrivateKey decriptedIssuerPrivateKey = loadAndDecryptPrivateKey(issuerCertEntity);
             issuer = new Issuer(decriptedIssuerPrivateKey, CertificateUtils.getSubjectX500Name(issuerCert));
         }
 
@@ -221,11 +221,11 @@ public class CertificateService {
         return AESUtils.secretKeyFromBase64(dekBase64);
     }
 
-    private PrivateKey loadAndDecryptPrivateKeyForIssuer(Certificate issuerCertEntity) throws Exception {
-        byte[] encryptedPrivateKeyBytes = issuerCertEntity.getPrivateKeyEncrypted();
-        String iv = issuerCertEntity.getIv();
+    private PrivateKey loadAndDecryptPrivateKey(Certificate certEntity) throws Exception {
+        byte[] encryptedPrivateKeyBytes = certEntity.getPrivateKeyEncrypted();
+        String iv = certEntity.getIv();
 
-        SecretKey organizationDEK = getOrganizationDEK(issuerCertEntity.getOrganization());
+        SecretKey organizationDEK = getOrganizationDEK(certEntity.getOrganization());
         AESUtils.AESGcmEncrypted encryptedPrivateKey = new AESUtils.AESGcmEncrypted(
                 Base64.getEncoder().encodeToString(encryptedPrivateKeyBytes), iv);
 
@@ -304,6 +304,46 @@ public class CertificateService {
                 revokeCertificate(childCert.getId().toString());
             }
         }
+    }
+
+    public byte[] getKeyStoreForDownload(DownloadRequestDTO dto) throws Exception {
+        Certificate cert = certificateRepository.findById(dto.getCertificateId())
+                .orElseThrow(() -> new IllegalArgumentException("Certificate not found"));
+
+        User currentUser = userService.getLoggedUser();
+        if (currentUser.getRole() == UserRole.ROLE_ee_user) {
+            if (!cert.getUser().getId().equals(currentUser.getId())) {
+                throw new IllegalArgumentException("EE users can only download their own certificates");
+            }
+        } else if (currentUser.getRole() == UserRole.ROLE_ca_user) {
+            if (!cert.getOrganization().getId().equals(currentUser.getOrganization().getId())) {
+                throw new IllegalArgumentException("CA users can only download certificates within their organization");
+            }
+        } else if (currentUser.getRole() != UserRole.ROLE_admin) {
+            throw new IllegalArgumentException("Unknown user role");
+        }
+
+        X509Certificate x509Certificate = cert.getX509Certificate();
+        PrivateKey privateKey = loadAndDecryptPrivateKey(cert);
+
+        KeyStore ks = switch (dto.getFormat()) {
+            case PKCS12 -> KeyStore.getInstance("PKCS12");
+            case JKS -> KeyStore.getInstance("JKS");
+            default -> throw new IllegalArgumentException("Unknown format: " + dto.getFormat());
+        };
+        ks.load(null, null);
+        ks.setKeyEntry(
+                dto.getAlias(),
+                privateKey,
+                dto.getPassword().toCharArray(),
+                new java.security.cert.Certificate[]{x509Certificate}
+        );
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ks.store(baos, dto.getPassword().toCharArray());
+
+
+        return baos.toByteArray();
     }
 }
 

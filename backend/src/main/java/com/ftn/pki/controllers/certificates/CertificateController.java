@@ -2,12 +2,17 @@ package com.ftn.pki.controllers.certificates;
 
 import com.ftn.pki.dtos.certificates.CreateCertificateDTO;
 import com.ftn.pki.dtos.certificates.CreatedCertificateDTO;
+import com.ftn.pki.dtos.certificates.DownloadRequestDTO;
 import com.ftn.pki.dtos.certificates.SimpleCertificateDTO;
+import com.ftn.pki.models.certificates.KEYSTOREDOWNLOADFORMAT;
 import com.ftn.pki.services.certificates.CertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.util.Collection;
 
@@ -68,4 +73,21 @@ public class CertificateController {
         }
     }
 
+    @PostMapping("/download")
+    public ResponseEntity<byte[]> downloadCertificate(@RequestBody DownloadRequestDTO dto) {
+        byte[] bytes = null;
+        try {
+            bytes = certificateService.getKeyStoreForDownload(dto);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .build();
+        }
+
+        String fileName = "certificate." + (dto.getFormat() == KEYSTOREDOWNLOADFORMAT.PKCS12 ? "p12" : "jks");
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(bytes);
+    }
 }
