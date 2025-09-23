@@ -9,7 +9,7 @@
         <th>Start Date</th>
         <th>End Date</th>
         <th>Status</th>
-        <th *ngIf="role === 'ee'" colspan="2" style="text-align: center">Actions</th>
+        <th colspan="2">Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -21,17 +21,10 @@
         <td>{{cert.startDate | date}}</td>
         <td>{{cert.endDate | date}}</td>
         <td>{{cert.revoked ? 'Revoked' : 'Valid'}}</td>
-        <td *ngIf="role === 'ee'">
-          <button class="delete" (click)="revokeCertificate(cert)">
-            Revoke
-          </button>
-        </td>
-        <td *ngIf="role === 'ee'">
-          <button class="edit" (click)="downloadCertificate(cert)">
-            Download
-          </button>
-        </td>
-      </tr>
+
+        <td><button class="delete" (click)="revokeCertificate(cert)">Revoke</button></td>
+        <td><button class="edit" (click)="downloadCertificate(cert)">Download</button></td>  
+        
     </tbody>
   </table>
 </div>

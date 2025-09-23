@@ -29,25 +29,7 @@
 
       <div class="column">
         <h3>Generate Keys & Certificate</h3>
-        <label>Common Name (CN)</label>
-        <input type="text" placeholder="Enter CN">
-
-        <label>Organization (O)</label>
-        <input type="text" placeholder="Enter Organization">
-
-        <label>Organizational Unit (OU)</label>
-        <input type="text" placeholder="Enter OU">
-
-        <label>Country (C)</label>
-        <input type="text" placeholder="Enter Country">
-
-        <label>Email</label>
-        <input type="email" placeholder="Enter Email">
-
-        <label>Validity (days)</label>
-        <input type="number" placeholder="Enter Validity">
-
-        <button type="submit">Generate</button>
+        <app-create-certification [role]="'ee'"></app-create-certification>
       </div>
 
     </form>

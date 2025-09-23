@@ -7,7 +7,7 @@ export enum CertificateType{
 }
 
 export interface CreateCertificateDto {
-  type: CertificateType;
+  type: CertificateType|null; //it will be invalid when null
   commonName: string;
   surname: string;
   givenName: string;
@@ -15,8 +15,8 @@ export interface CreateCertificateDto {
   organizationalUnit: string;
   country: string;
   email: string;
-  startDate: Date; 
-  endDate: Date;
+  startDate: Date|null; 
+  endDate: Date|null;
   extensions: string[];
   issuerCertificateId: string;
 }
@@ -38,4 +38,11 @@ export interface Certificate {
 export interface CACertificate {
   id: number;
   name: string;
+}
+
+export interface SimpleCertificate {
+  id: string;             
+  serialNumber: string;
+  subjectCommonName: string;
+  validTo: Date;
 }

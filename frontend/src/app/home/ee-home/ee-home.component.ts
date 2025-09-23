@@ -6,12 +6,13 @@ import { NavbarComponent } from '../../navbar/navbar.component';
 import { AllCertificationsComponent } from "../../certificate/all-certificates/all-certificates.component";
 import { EEService } from '../../user/service/ee.service';
 import { DialogComponent, DialogType } from '../../shared/dialog/dialog.component';
+import { CreateCertificationComponent } from "../../certificate/create-certificate/create-certificate.component";
 
 @Component({
   selector: 'app-ee-home',
   templateUrl: './ee-home.component.html',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent, AllCertificationsComponent, DialogComponent],
+  imports: [CommonModule, FormsModule, NavbarComponent, AllCertificationsComponent, DialogComponent, CreateCertificationComponent],
   styleUrls: ['../../shared/page.css','../../shared/tabs.css','../../shared/table.css','../../shared/form.css']
 })
 export class EeHomeComponent implements OnInit {

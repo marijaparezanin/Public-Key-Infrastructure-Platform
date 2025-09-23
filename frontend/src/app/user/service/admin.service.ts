@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {environment} from '../../../environments/environment';
-import { Certificate, CertificateType, CreateCertificateDto } from '../../certificate/model/certificate.model';
+import { Certificate, CertificateType, CreateCertificateDto, SimpleCertificate } from '../../certificate/model/certificate.model';
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
@@ -39,4 +39,32 @@ export class AdminService {
     ];
   }
 
+  getSimpleCertificates():SimpleCertificate[]{
+      return [
+          {
+              id: '550e8400-e29b-41d4-a716-446655440000',
+              serialNumber: '1234567890',
+              subjectCommonName: 'John Doe',
+              validTo: new Date('2026-12-31'),
+          },
+          {
+              id: '550e8400-e29b-41d4-a716-446655440001',
+              serialNumber: '0987654321',
+              subjectCommonName: 'Acme Corp Server',
+              validTo: new Date('2025-11-15'),
+          },
+          {
+              id: '550e8400-e29b-41d4-a716-446655440002',
+              serialNumber: '1122334455',
+              subjectCommonName: 'Jane Smith',
+              validTo: new Date('2027-01-20'),
+          },
+          {
+              id: '550e8400-e29b-41d4-a716-446655440003',
+              serialNumber: '6677889900',
+              subjectCommonName: 'Test CA',
+              validTo: new Date('2028-05-10'),
+          },
+      ];
+  }
 }
