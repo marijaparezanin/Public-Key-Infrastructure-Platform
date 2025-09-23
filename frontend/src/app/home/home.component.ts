@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-home',
   template: `<p>Redirecting to your dashboard...</p>`,
-  standalone: true
+  standalone: false
 })
 export class HomeComponent implements OnInit {
   constructor(private keycloak: KeycloakService, private router: Router) {}

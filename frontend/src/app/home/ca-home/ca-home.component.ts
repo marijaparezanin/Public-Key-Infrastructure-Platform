@@ -1,27 +1,47 @@
-import { Component } from '@angular/core';
-import {NavbarComponent} from "../../navbar/navbar.component";
 import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { NavbarComponent } from '../../navbar/navbar.component';
+import { CreateCertificationComponent } from '../../certificate/create-certificate/create-certificate.component';
+import { AllCertificationsComponent } from '../../certificate/all-certificates/all-certificates.component';
+import { DialogType, DialogComponent } from '../../shared/dialog/dialog.component';
 
 @Component({
   selector: 'app-ca-home',
-  imports: [
-    NavbarComponent,
-    CommonModule, FormsModule
-  ],
   templateUrl: './ca-home.component.html',
+  styleUrls: ['../../shared/page.css','../../shared/tabs.css','../../shared/table.css'],
   standalone: true,
-  styleUrl: './ca-home.component.css'
+  imports: [CommonModule, FormsModule, NavbarComponent, CreateCertificationComponent, AllCertificationsComponent, DialogComponent],
 })
 export class CaHomeComponent {
-  activeTab: string = 'issueIntermediate';
+  activeTab: string = 'issueCerts';
 
-  certificates = [
-    {id:1, cn:'server1.example.com', o:'Org1', ou:'IT', c:'RS', email:'user@example.com', type:'Intermediate', validity:365, status:'Active'},
-    {id:2, cn:'device1.example.com', o:'Org1', ou:'IT', c:'RS', email:'user@example.com', type:'End-Entity', validity:180, status:'Active'}
-  ];
+  dialogVisible = false;
+  dialogMessage = '';
+  dialogType: DialogType = 'info';
+  deleteTarget: any = null;
 
   templates = [
     {name:'Default EE', caIssuer:'Org1 Root', cnRegex:'.*\.example\.com', sanRegex:'.*\.example\.com', ttl:180, keyUsage:'digitalSignature', extendedKeyUsage:'clientAuth'}
   ];
+
+  openDeleteDialog(template: any) {
+    this.deleteTarget = template;
+    this.dialogMessage = `Are you sure you want to delete template "${template.name}"?`;
+    this.dialogType = 'confirm';
+    this.dialogVisible = true;
+  }
+
+  onDialogClose() {
+    this.dialogVisible = false;
+    this.deleteTarget = null;
+  }
+
+  onDialogConfirm() {
+    if (this.deleteTarget) {
+      this.templates = this.templates.filter(t => t !== this.deleteTarget);
+    }
+    this.onDialogClose();
+  }
+
 }

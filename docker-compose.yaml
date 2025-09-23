@@ -58,6 +58,8 @@ services:
     container_name: spring-backend
     ports:
       - "8081:8081"
+    env_file:
+      - ./backend/.env
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-backend:5432/backenddb
       SPRING_DATASOURCE_USERNAME: admin
@@ -75,16 +77,9 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_KEYCLOAK_URL: ${NEXT_PUBLIC_KEYCLOAK_URL}
-        NEXT_PUBLIC_SERVER_URL: ${NEXT_PUBLIC_SERVER_URL}
-        NEXT_PUBLIC_KEYCLOAK_REALM: ${NEXT_PUBLIC_KEYCLOAK_REALM}
-        NEXT_PUBLIC_KEYCLOAK_CLIENT: ${NEXT_PUBLIC_KEYCLOAK_CLIENT}
     container_name: angular-frontend
     ports:
       - "4200:4200"
-    env_file:
-      - ./frontend/.env
     depends_on:
       - backend
       - keycloak

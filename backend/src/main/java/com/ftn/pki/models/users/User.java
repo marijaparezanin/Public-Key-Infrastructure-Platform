@@ -1,12 +1,13 @@
-package com.ftn.pki.models;
+package com.ftn.pki.models.users;
 
+import com.ftn.pki.models.organizations.Organization;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.UUID;
 
 @Entity
-@Table(name = "USER_")
+@Table(name = "USERS")
 @Setter
 @Getter
 @AllArgsConstructor
@@ -30,7 +31,11 @@ public class User {
     @Column
     private String lastname;
 
-    @Column
-    private String organization;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "organization_id", nullable = true)
+    private Organization organization;
 
+    @Column
+    @Enumerated(EnumType.STRING)
+    private UserRole role;
 }

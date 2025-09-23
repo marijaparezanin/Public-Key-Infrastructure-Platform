@@ -11,17 +11,15 @@
   font-family: 'Roboto', sans-serif;
 }
 .navbar-logo {
-  width: 40px;   /* adjust to desired size */
+  width: 40px;  
   height: auto;
 }
 
-
 .navbar-left {
   display: flex;
-  align-items: center; /* vertically center logo and title */
-  gap: 10px; /* optional spacing between logo and title */
+  align-items: center;
+  gap: 10px;
 }
-
 
 .navbar-title {
   color: var(--light-beige);
