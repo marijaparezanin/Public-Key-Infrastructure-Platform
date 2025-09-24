@@ -1,21 +1,15 @@
-<form class="form">
-      <label>Email</label>
-      <input type="email" placeholder="Enter user email">
+<form class="form" #caForm="ngForm" (ngSubmit)="onSubmit(caForm)">
+  <label>Email</label>
+  <input type="email" name="email" [(ngModel)]="dto.email" required placeholder="Enter user email">
 
-      <label>Password</label>
-      <input type="password" placeholder="Enter password">
+  <label>First Name</label>
+  <input type="text" name="name" [(ngModel)]="dto.name" required placeholder="First Name">
 
-      <label>Confirm Password</label>
-      <input type="password" placeholder="Confirm password">
+  <label>Surname</label>
+  <input type="text" name="surname" [(ngModel)]="dto.surname" required placeholder="Last Name">
 
-      <label>First Name</label>
-      <input type="text" placeholder="First Name">
+  <label>Organization</label>
+  <input type="text" name="organization" [(ngModel)]="dto.organization" required placeholder="Organization">
 
-      <label>Last Name</label>
-      <input type="text" placeholder="Last Name">
-
-      <label>Organization</label>
-      <input type="text" placeholder="Organization">
-
-      <button type="submit">Create User</button>
-    </form>
+  <button type="submit" [disabled]="!caForm.form.valid">Create User</button>
+</form>
