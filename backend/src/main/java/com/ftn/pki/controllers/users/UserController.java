@@ -3,6 +3,7 @@ package com.ftn.pki.controllers.users;
 import com.ftn.pki.dtos.users.CreateCAUserDTO;
 import com.ftn.pki.services.organizations.OrganizationService;
 import com.ftn.pki.services.users.UserService;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -23,11 +26,11 @@ public class UserController {
 
     @PostMapping("/create-ca")
     public ResponseEntity<String> createCAUser(@RequestBody CreateCAUserDTO dto) {
-        List<UserRepresentation> existing = realmResource.users().search(dto.getEmail());
-        if (!existing.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
-                    .body("User with this email already exists");
-        }
+//        List<UserRepresentation> existing = realmResource.users().search(dto.getEmail());
+//        if (!existing.isEmpty()) {
+//            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
+//                    .body("User with this email already exists");
+//        }
         userService.createCAUser(dto);
         return ResponseEntity.ok("CA user created. They will receive an email to set their password.");
     }
