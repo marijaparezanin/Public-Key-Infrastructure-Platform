@@ -54,3 +54,92 @@
 .dialog-actions button:hover {
   opacity: 0.85;
 }
+
+.dialog-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.dialog-box {
+  background: var(--beige);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+  max-width: 400px;
+  text-align: center;
+}
+
+.dialog-box.error {
+  border-left: 6px solid var(--error-color);
+}
+
+.dialog-box.info {
+  border-left: 6px solid var(--primary-color);
+}
+
+.dialog-box.confirm {
+  border-left: 6px solid var(--green-color);
+}
+
+.dialog-box.download {
+  border-left: 6px solid var(--green-color);
+}
+
+.dialog-message {
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Input polja za download dijalog */
+.dialog-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.dialog-inputs label {
+  font-size: 0.95rem;
+}
+
+.dialog-inputs input,
+.dialog-inputs select {
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 0.95rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.dialog-actions button {
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.dialog-actions button.ok {
+  background: var(--green-color);
+  color: white;
+}
+
+.dialog-actions button:hover {
+  opacity: 0.85;
+}
