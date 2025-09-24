@@ -1,14 +1,10 @@
 package com.ftn.pki.services.certificates;
 
-import com.ftn.pki.dtos.certificates.CreateCertificateDTO;
-import com.ftn.pki.dtos.certificates.CreatedCertificateDTO;
-import com.ftn.pki.dtos.certificates.DownloadRequestDTO;
-import com.ftn.pki.dtos.certificates.SimpleCertificateDTO;
+import com.ftn.pki.dtos.certificates.*;
 import com.ftn.pki.models.certificates.Certificate;
 import com.ftn.pki.models.certificates.CertificateType;
 import com.ftn.pki.models.certificates.Issuer;
 import com.ftn.pki.models.certificates.Subject;
-import com.ftn.pki.models.certificates.KEYSTOREDOWNLOADFORMAT;
 import com.ftn.pki.models.organizations.Organization;
 import com.ftn.pki.models.users.User;
 import com.ftn.pki.models.users.UserRole;
@@ -275,8 +271,8 @@ public class CertificateService {
         return dtos;
     }
 
-    public void revokeCertificate(String id) {
-        Certificate cert = certificateRepository.findById(UUID.fromString(id))
+    public void revokeCertificate(RequestRevokeDTO dto) {
+        Certificate cert = certificateRepository.findById(UUID.fromString(dto.getCertificateId()))
                 .orElseThrow(() -> new IllegalArgumentException("Certificate not found"));
 
         User currentUser = userService.getLoggedUser();
@@ -301,7 +297,7 @@ public class CertificateService {
 
         for (Certificate childCert : certificateRepository.findAllByIssuerId(cert.getId())) {
             if (!childCert.isRevoked()) {
-                revokeCertificate(childCert.getId().toString());
+                revokeCertificate(new RequestRevokeDTO(childCert.getId().toString(), dto.getReason()));
             }
         }
     }

@@ -1,9 +1,6 @@
 package com.ftn.pki.controllers.certificates;
 
-import com.ftn.pki.dtos.certificates.CreateCertificateDTO;
-import com.ftn.pki.dtos.certificates.CreatedCertificateDTO;
-import com.ftn.pki.dtos.certificates.DownloadRequestDTO;
-import com.ftn.pki.dtos.certificates.SimpleCertificateDTO;
+import com.ftn.pki.dtos.certificates.*;
 import com.ftn.pki.models.certificates.KEYSTOREDOWNLOADFORMAT;
 import com.ftn.pki.services.certificates.CertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,10 +57,10 @@ public class CertificateController {
         return ResponseEntity.ok(certificateService.findAllSimple());
     }
 
-    @GetMapping("/revoke/{id}")
-    public ResponseEntity<Void> revokeCertificate(@PathVariable String id){
+    @GetMapping("/revoke")
+    public ResponseEntity<Void> revokeCertificate(@RequestBody RequestRevokeDTO dto){
         try {
-            certificateService.revokeCertificate(id);
+            certificateService.revokeCertificate(dto);
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
