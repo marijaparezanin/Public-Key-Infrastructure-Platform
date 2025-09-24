@@ -26,12 +26,7 @@ public class UserController {
 
     @PostMapping("/create-ca")
     public ResponseEntity<String> createCAUser(@RequestBody CreateCAUserDTO dto) {
-//        List<UserRepresentation> existing = realmResource.users().search(dto.getEmail());
-//        if (!existing.isEmpty()) {
-//            return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE)
-//                    .body("User with this email already exists");
-//        }
         userService.createCAUser(dto);
-        return ResponseEntity.ok("CA user created. They will receive an email to set their password.");
+        return ResponseEntity.ok().build();
     }
 }
