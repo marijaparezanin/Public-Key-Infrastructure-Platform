@@ -50,7 +50,29 @@ export interface Certificate {
 
 export interface SimpleCertificate {
   id: string;
+  type: CertificateType;
+  commonName: string;
+  surname: string;
+  givenName: string;
+  organization: string;
+  organizationalUnit: string;
+  country: string;
+  email: string;
+  startDate: Date|null;
+  endDate: Date|null;
+  revoked: boolean;
+  valid: boolean;
   serialNumber: string;
-  subjectCommonName: string;
-  validTo: Date;
+}
+
+export enum KEYSTOREDOWNLOADFORMAT {
+  JKS,
+  PKCS12
+}
+
+export interface DownloadRequestDTO {
+  certificateId: string;
+  password: string;
+  alias: string;
+  format: KEYSTOREDOWNLOADFORMAT;
 }

@@ -2,7 +2,13 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import {environment} from '../../../environments/environment';
-import { Certificate, CreateCertificateDto, CreatedCertificateDto, SimpleCertificate } from '../../certificate/model/certificate.model';
+import {
+  Certificate,
+  CreateCertificateDto,
+  CreatedCertificateDto,
+  DownloadRequestDTO,
+  SimpleCertificate
+} from '../../certificate/model/certificate.model';
 
 @Injectable({ providedIn: 'root' })
 export class CertificateService {
@@ -13,12 +19,16 @@ export class CertificateService {
     return this.http.post<CreatedCertificateDto>(`${this.apiUrl}`, dto);
   }
 
-  getAllCertificates(): Observable<Certificate[]> {
-    return this.http.get<Certificate[]>(`${this.apiUrl}/all`);
+  getAllCertificates(): Observable<SimpleCertificate[]> {
+    return this.http.get<SimpleCertificate[]>(`${this.apiUrl}/all`);
   }
 
-  getSimpleCertificates():Observable<SimpleCertificate[]>{
+  getApplicableCA():Observable<SimpleCertificate[]>{
       return this.http.get<SimpleCertificate[]>(`${this.apiUrl}/applicable-ca`);
+  }
+
+  downloadCertificate(id: string, dto: DownloadRequestDTO): Observable<Blob> {
+    return this.http.post(`${this.apiUrl}/download`, dto, { responseType: 'blob' });
   }
 
 }

@@ -184,7 +184,8 @@ public class CertificateService {
                             cert.getStartDate(),
                             cert.getEndDate(),
                             cert.isRevoked(),
-                            isCertificateValid(cert)
+                            isCertificateValid(cert),
+                            cert.getSerialNumber()
                             )
                     );
                 }
@@ -242,6 +243,7 @@ public class CertificateService {
             }
             case ROLE_admin -> {
                 certs = certificateRepository.findAll();
+                System.out.println("Admin fetching all certificates, count: " + certs.size());
             }
             default -> throw new IllegalArgumentException("Unknown role");
         }
@@ -262,8 +264,10 @@ public class CertificateService {
                         cert.getStartDate(),
                         cert.getEndDate(),
                         cert.isRevoked(),
-                        isCertificateValid(cert)
+                        isCertificateValid(cert),
+                        cert.getSerialNumber()
                 );
+                dtos.add(dto);
             } catch (Exception e) {
                 throw new RuntimeException("Error validating certificate: " + e.getMessage());
             }

@@ -32,7 +32,7 @@ export class CreateCertificationComponent implements OnInit {
     email: '',
     startDate: null,
     endDate: null,
-    extensions: {}, 
+    extensions: {},
     issuerCertificateId: '',
     assignToOrganizationName: null
   };
@@ -51,11 +51,11 @@ export class CreateCertificationComponent implements OnInit {
 
   availableCertificates: SimpleCertificate[] = [];
   allOrganizations: Organization[] = [];
-  
+
   constructor(private certificateService: CertificateService, private organizationService:OrganizationService) {}
 
   ngOnInit() {
-    this.certificateService.getSimpleCertificates().subscribe(cers => {
+    this.certificateService.getApplicableCA().subscribe(cers => {
       this.availableCertificates = cers;
     });
     this.organizationService.getAll().subscribe(orgs => {

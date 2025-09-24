@@ -26,7 +26,7 @@ export class EeHomeComponent implements OnInit {
   constructor(private certificateService: CertificateService) {}
 
   ngOnInit(): void {
-    this.certificateService.getSimpleCertificates().subscribe(cers=>{
+    this.certificateService.getApplicableCA().subscribe(cers=>{
       this.caCertificates = cers;
     });
   }
@@ -58,6 +58,6 @@ export class EeHomeComponent implements OnInit {
 
   selectCACertificate(selectedCA: SimpleCertificate) {
     console.log('Selected CA Certificate:', selectedCA);
-    this.showDialog(`CA Certificate "${selectedCA.subjectCommonName}" selected.`, 'confirm');
+    this.showDialog(`CA Certificate "${selectedCA.commonName}" selected.`, 'confirm');
   }
 }

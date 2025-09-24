@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Certificate } from '../model/certificate.model';
+import {Certificate, SimpleCertificate} from '../model/certificate.model';
 import { DialogComponent } from '../../shared/dialog/dialog.component';
 import { CertificateService } from '../service/certificate.service';
 
@@ -14,31 +14,31 @@ import { CertificateService } from '../service/certificate.service';
 })
 export class AllCertificationsComponent implements OnInit {
   @Input() role: 'admin' | 'ca' | 'ee' | null = null;
-  certificates: Certificate[] = [];
+  certificates: SimpleCertificate[] = [];
 
   showDialog = false;
   dialogMessage = '';
   dialogType: 'info' | 'error' | 'confirm' = 'info';
-  selectedCert: Certificate | null = null;
+  selectedCert: SimpleCertificate | null = null;
 
   constructor(
     private certificateService: CertificateService
   ) {}
 
   ngOnInit() {
-    this.certificateService.getAllCertificates().subscribe(cers=>{
-      this.certificates = cers;
+    this.certificateService.getAllCertificates().subscribe(certs=>{
+      this.certificates = certs;
     })
   }
 
-  revokeCertificate(cert: Certificate) {
+  revokeCertificate(cert: SimpleCertificate) {
     this.selectedCert = cert;
     this.dialogMessage = `Are you sure you want to revoke certificate ${cert.serialNumber}?`;
     this.dialogType = 'confirm';
     this.showDialog = true;
   }
 
-  downloadCertificate(cert: Certificate) {
+  downloadCertificate(cert: SimpleCertificate) {
     this.selectedCert = cert;
     this.dialogMessage = `Downloading certificate ${cert.serialNumber}...`;
     this.dialogType = 'info';
