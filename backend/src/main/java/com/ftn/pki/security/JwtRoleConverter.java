@@ -18,8 +18,10 @@ public class JwtRoleConverter implements Converter<Jwt, AbstractAuthenticationTo
     @Override
     public AbstractAuthenticationToken convert(Jwt jwt) {
 
-        Map<String, Collection<String>> realmAccess = jwt.getClaim("realm_access");
-        Collection<String> roles = realmAccess.get("roles");
+        Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
+        Map<String, Object> pkiFrontend = (Map<String, Object>) resourceAccess.get("pki-frontend");
+        Collection<String> roles = (Collection<String>) pkiFrontend.get("roles");
+
         Collection<GrantedAuthority> authorities = roles.stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                 .collect(Collectors.toList());

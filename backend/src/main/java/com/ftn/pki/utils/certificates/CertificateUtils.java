@@ -3,6 +3,8 @@ package com.ftn.pki.utils.certificates;
 import com.ftn.pki.models.certificates.CertificateType;
 import com.ftn.pki.models.certificates.Issuer;
 import com.ftn.pki.models.certificates.Subject;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.cert.CertIOException;
@@ -261,6 +263,14 @@ public class CertificateUtils {
     public static X500Name getSubjectX500Name(X509Certificate certificate) {
         String subjectDN = certificate.getSubjectX500Principal().getName();
         return new X500Name(subjectDN);
+    }
+
+    public static String getRDNValue(X500Name x500Name, ASN1ObjectIdentifier id) {
+        RDN[] rdns = x500Name.getRDNs(id);
+        if (rdns != null && rdns.length > 0 && rdns[0].getFirst() != null) {
+            return rdns[0].getFirst().getValue().toString();
+        }
+        return null;
     }
 
     public static boolean isValidByDate(X509Certificate certificate) {

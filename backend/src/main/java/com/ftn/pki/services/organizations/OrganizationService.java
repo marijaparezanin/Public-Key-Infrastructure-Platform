@@ -1,5 +1,6 @@
 package com.ftn.pki.services.organizations;
 
+import com.ftn.pki.dtos.ogranizations.SimpleOrganizationDTO;
 import com.ftn.pki.models.organizations.Organization;
 import com.ftn.pki.repositories.organizations.OrganizationRepository;
 import com.ftn.pki.utils.cryptography.AESUtils;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.util.Base64;
+import java.util.List;
 
 @Service
 public class OrganizationService {
@@ -26,6 +28,13 @@ public class OrganizationService {
 
     public Organization findOrganizationByName(String name) {
         return organizationRepository.findByName(name);
+    }
+
+    public List<SimpleOrganizationDTO> findAllSimpleDTO() {
+        List<Organization> organizations = organizationRepository.findAll();
+        return organizations.stream()
+                .map(org -> new SimpleOrganizationDTO(org.getId(), org.getName()))
+                .toList();
     }
 
     public Organization save(Organization data) {

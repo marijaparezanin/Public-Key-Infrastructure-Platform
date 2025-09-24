@@ -1,5 +1,19 @@
 <form class="form" (ngSubmit)="submitCertificate(certForm)" #certForm="ngForm" [ngClass]="{'ee-role': role==='ee'}">
 
+  <!--Asigned to organization-->
+  <div class="no-show" *ngIf="role==='admin'">
+    <label>Assigne to organization</label>
+    <select [(ngModel)]="certificateForm.assignToOrganizationName" name="assignToOrganizationName"
+            #assignedTo="ngModel" (ngModelChange)="assignedTo.control.setErrors(customRequired(assignedTo.control, 'Select Assigned To'))">
+      <option *ngFor="let org of allOrganizations" [value]="org.name">
+        {{ org.name }}
+      </option>
+    </select>
+    <div *ngIf="assignedTo.invalid && (assignedTo.dirty || assignedTo.touched)" class="error">
+      *Select Issuer
+    </div>
+  </div>
+
   <!-- Common Name -->
   <label>Owner Common Name (CN)</label>
   <input type="text" [(ngModel)]="certificateForm.commonName" name="commonName" placeholder="Common Name"
@@ -64,15 +78,17 @@
   </div>
 
   <!-- Certificate Type (only for admin/CA) -->
-  <label *ngIf="role !== 'ee'">Certificate Type</label>
-  <select [(ngModel)]="certificateForm.type" name="type" #certType="ngModel" required
-          (ngModelChange)="certType.control.setErrors(customRequired(certType.control, 'Select Certificate Type'))">
-    <option *ngIf="role ==='admin'">Root</option>
-    <option>Intermediate</option>
-    <option>End-Entity</option>
-  </select>
-  <div *ngIf="role !== 'ee' && certType.invalid && (certType.dirty || certType.touched)" class="error">
-    *Select Certificate Type
+  <div *ngIf="role !== 'ee'" class="no-show">
+    <label >Certificate Type</label>
+    <select [(ngModel)]="certificateForm.type" name="type" #certType="ngModel" required
+            (ngModelChange)="certType.control.setErrors(customRequired(certType.control, 'Select Certificate Type'))">
+      <option *ngIf="role ==='admin'">ROOT</option>
+      <option>INTERMEDIATE</option>
+      <option>END-ENTITY</option>
+    </select>
+    <div *ngIf="certType.invalid && (certType.dirty || certType.touched)" class="error">
+      *Select Certificate Type
+    </div>
   </div>
 
   <!-- Start / End Dates -->
@@ -91,48 +107,49 @@
   </div>
 
   <!-- Issuer -->
-  <label>Issuer</label>
-  <select [(ngModel)]="certificateForm.issuerCertificateId" name="issuerCertificateId" #issuer="ngModel" required
-    (ngModelChange)="issuer.control.setErrors(customRequired(issuer.control, 'Select Issuer'))">
-    <option *ngFor="let cert of availableCertificates" [value]="cert.id">
-      {{ cert.subjectCommonName }}
-    </option>
-  </select>
-  <div *ngIf="issuer.invalid && (issuer.dirty || issuer.touched)" class="error">
-    *Select Issuer
+  <div *ngIf="certificateForm.type?.toString()?.toLocaleUpperCase() !== 'ROOT'" class="no-show">
+    <label>Issuer</label>
+    <select [(ngModel)]="certificateForm.issuerCertificateId" name="issuerCertificateId"
+            #issuer="ngModel" (ngModelChange)="issuer.control.setErrors(customRequired(issuer.control, 'Select Issuer'))">
+      <option *ngFor="let cert of availableCertificates" [value]="cert.id">
+        {{ cert.subjectCommonName }}
+      </option>
+    </select>
+    <div *ngIf="issuer.invalid && (issuer.dirty || issuer.touched)" class="error">
+      *Select Issuer
+    </div>
   </div>
 
   <!-- Extensions -->
   <h3>Extensions</h3>
   <table>
-    <tr *ngIf="extensionEntries.length>0">
+    <tr *ngIf="extensionEntries.size>0">
       <th>Key</th>
       <th>Value</th>
       <th></th>
     </tr>
-    <tr *ngFor="let ext of extensionEntries; let i = index">
+    <tr *ngFor="let ext of extensionEntries | keyvalue; let i = index">
       <td>
         <select [(ngModel)]="ext.key" name="extKey{{i}}">
-          <option *ngFor="let key of supportedExtensions" [value]="key" [disabled]="isKeyDisabled(key, ext)">
+          <option *ngFor="let key of supportedExtensions" [value]="key" [disabled]="isKeyDisabled(key, ext.key)">
             {{key}}
           </option>
         </select>
       </td>
       <td>
-        <input type="text" [(ngModel)]="ext.value" name="extValue{{i}}" placeholder="Value" required
-          #extValue="ngModel"
-          (ngModelChange)="extValue.control.setErrors(customRequired(extValue.control, 'Enter Value'))" />
+        <input type="text" [ngModel]="ext.value" (ngModelChange)="extensionEntries.set(ext.key, $event)" name="extValue{{i}}" placeholder="Value" required #extValue="ngModel" (ngModelChange)="extValue.control.setErrors(customRequired(extValue.control, 'Enter Value'))" />
         <div *ngIf="extValue.invalid && (extValue.dirty || extValue.touched)" class="error">
           *Enter Value
         </div>
       </td>
       <td>
-        <button type="button" (click)="removeExtension(i)">Remove</button>
+        <button type="button" (click)="removeExtension(ext.key)">Remove</button>
       </td>
     </tr>
+
   </table>
 
-  <button type="button" (click)="addExtension()" [disabled]="extensionEntries.length >= supportedExtensions.length">
+  <button type="button" (click)="addExtension()" [disabled]="extensionEntries.size >= supportedExtensions.length">
     Add Extension
   </button>
 

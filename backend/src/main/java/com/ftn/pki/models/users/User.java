@@ -12,7 +12,6 @@ import java.util.UUID;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
 public class User {
 
     @Id
@@ -31,7 +30,7 @@ public class User {
     @Column
     private String lastname;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "organization_id", nullable = true)
     private Organization organization;
 

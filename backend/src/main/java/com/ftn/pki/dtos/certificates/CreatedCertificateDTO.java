@@ -1,19 +1,22 @@
 package com.ftn.pki.dtos.certificates;
 
 import com.ftn.pki.models.certificates.CertificateType;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
-public class CreateCertificateDTO {
+public class CreatedCertificateDTO {
+    private UUID id;
     private CertificateType type;
-
-    // X500Name (subject)
     private String commonName;        // CN
     private String surname;           // SURNAME
     private String givenName;         // GIVENNAME
@@ -26,8 +29,4 @@ public class CreateCertificateDTO {
     private Date endDate;
 
     private Map<String, String> extensions;
-
-    private String assignToOrganizationName;
-
-    private String issuerCertificateId;
 }

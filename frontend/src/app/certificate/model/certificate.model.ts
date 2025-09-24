@@ -1,9 +1,9 @@
 import { Organization } from "./organization.model";
 
 export enum CertificateType{
-    'Root',
-    'Intermediate',
-    'End-Entity'
+    'ROOT',
+    'INTERMEDIATE',
+    'END_ENTITY'
 }
 
 export interface CreateCertificateDto {
@@ -15,10 +15,24 @@ export interface CreateCertificateDto {
   organizationalUnit: string;
   country: string;
   email: string;
-  startDate: Date|null; 
+  startDate: Date|null;
   endDate: Date|null;
-  extensions: string[];
+  extensions: Record<string, string>;
   issuerCertificateId: string;
+  assignToOrganizationName: string|null;
+}
+
+export interface CreatedCertificateDto {
+  commonName: string;
+  surname: string;
+  givenName: string;
+  organization: string;
+  organizationalUnit: string;
+  country: string;
+  email: string;
+  startDate: Date|null;
+  endDate: Date|null;
+  extensions: Record<string, string>;
 }
 
 export interface Certificate {
@@ -29,14 +43,13 @@ export interface Certificate {
     startDate: Date;
     endDate: Date;
     certificateEncoded?: string;
-    privateKeyEncrypted?: string; 
+    privateKeyEncrypted?: string;
     iv: string;
-    extensionsJson?: string;
     revoked: boolean;
 }
 
 export interface SimpleCertificate {
-  id: string;             
+  id: string;
   serialNumber: string;
   subjectCommonName: string;
   validTo: Date;

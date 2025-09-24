@@ -33,6 +33,7 @@ export class KeycloakService {
       })
       .then(authenticated => {
         console.log('Keycloak authenticated:', authenticated);
+        console.log("JWT: " + this.keycloak?.token)
         this.initialized = true;
 
         if (!authenticated && !isLogoutRedirect) {
@@ -48,6 +49,7 @@ export class KeycloakService {
 
   login(): void {
     this.keycloak?.login({ redirectUri: window.location.origin + '/home' });
+    console.log("JWT: " + this.keycloak?.token)
   }
 
   logout(): void {
