@@ -1,11 +1,8 @@
 package com.ftn.pki.controllers.users;
 
 import com.ftn.pki.dtos.users.CreateCAUserDTO;
-import com.ftn.pki.services.organizations.OrganizationService;
 import com.ftn.pki.services.users.UserService;
-import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
