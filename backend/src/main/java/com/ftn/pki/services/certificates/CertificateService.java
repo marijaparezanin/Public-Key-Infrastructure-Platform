@@ -165,7 +165,12 @@ public class CertificateService {
     public Collection<SimpleCertificateDTO> findAllCAForMyOrganization() {
         User currentUser = userService.getLoggedUser();
         List<CertificateType> caTypes = List.of(CertificateType.ROOT, CertificateType.INTERMEDIATE);
-        List<Certificate> certs = certificateRepository.findAllByOrganizationAndTypeIn(currentUser.getOrganization(), caTypes);
+        List<Certificate> certs = null;
+        if (currentUser.getRole() == UserRole.ROLE_admin) {
+            certs = certificateRepository.findAllByTypeIn(caTypes);
+        }else {
+            certs = certificateRepository.findAllByOrganizationAndTypeIn(currentUser.getOrganization(), caTypes);
+        }
         ArrayList<SimpleCertificateDTO> dtos = new ArrayList<>();
         for (Certificate cert : certs) {
             try {
