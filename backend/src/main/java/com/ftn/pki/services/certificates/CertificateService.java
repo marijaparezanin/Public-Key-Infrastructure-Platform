@@ -1,14 +1,10 @@
 package com.ftn.pki.services.certificates;
 
-import com.ftn.pki.dtos.certificates.CreateCertificateDTO;
-import com.ftn.pki.dtos.certificates.CreatedCertificateDTO;
-import com.ftn.pki.dtos.certificates.DownloadRequestDTO;
-import com.ftn.pki.dtos.certificates.SimpleCertificateDTO;
+import com.ftn.pki.dtos.certificates.*;
 import com.ftn.pki.models.certificates.Certificate;
 import com.ftn.pki.models.certificates.CertificateType;
 import com.ftn.pki.models.certificates.Issuer;
 import com.ftn.pki.models.certificates.Subject;
-import com.ftn.pki.models.certificates.KEYSTOREDOWNLOADFORMAT;
 import com.ftn.pki.models.organizations.Organization;
 import com.ftn.pki.models.users.User;
 import com.ftn.pki.models.users.UserRole;
@@ -169,7 +165,12 @@ public class CertificateService {
     public Collection<SimpleCertificateDTO> findAllCAForMyOrganization() {
         User currentUser = userService.getLoggedUser();
         List<CertificateType> caTypes = List.of(CertificateType.ROOT, CertificateType.INTERMEDIATE);
-        List<Certificate> certs = certificateRepository.findAllByOrganizationAndTypeIn(currentUser.getOrganization(), caTypes);
+        List<Certificate> certs = null;
+        if (currentUser.getRole() == UserRole.ROLE_admin) {
+            certs = certificateRepository.findAllByTypeIn(caTypes);
+        }else {
+            certs = certificateRepository.findAllByOrganizationAndTypeIn(currentUser.getOrganization(), caTypes);
+        }
         ArrayList<SimpleCertificateDTO> dtos = new ArrayList<>();
         for (Certificate cert : certs) {
             try {
@@ -188,7 +189,8 @@ public class CertificateService {
                             cert.getStartDate(),
                             cert.getEndDate(),
                             cert.isRevoked(),
-                            isCertificateValid(cert)
+                            isCertificateValid(cert),
+                            cert.getSerialNumber()
                             )
                     );
                 }
@@ -266,8 +268,10 @@ public class CertificateService {
                         cert.getStartDate(),
                         cert.getEndDate(),
                         cert.isRevoked(),
-                        isCertificateValid(cert)
+                        isCertificateValid(cert),
+                        cert.getSerialNumber()
                 );
+                dtos.add(dto);
             } catch (Exception e) {
                 throw new RuntimeException("Error validating certificate: " + e.getMessage());
             }
@@ -275,8 +279,8 @@ public class CertificateService {
         return dtos;
     }
 
-    public void revokeCertificate(String id) {
-        Certificate cert = certificateRepository.findById(UUID.fromString(id))
+    public void revokeCertificate(RequestRevokeDTO dto) {
+        Certificate cert = certificateRepository.findById(UUID.fromString(dto.getCertificateId()))
                 .orElseThrow(() -> new IllegalArgumentException("Certificate not found"));
 
         User currentUser = userService.getLoggedUser();
@@ -301,7 +305,7 @@ public class CertificateService {
 
         for (Certificate childCert : certificateRepository.findAllByIssuerId(cert.getId())) {
             if (!childCert.isRevoked()) {
-                revokeCertificate(childCert.getId().toString());
+                revokeCertificate(new RequestRevokeDTO(childCert.getId().toString(), dto.getReason()));
             }
         }
     }

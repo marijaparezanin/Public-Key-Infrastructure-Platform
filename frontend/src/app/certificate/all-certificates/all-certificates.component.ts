@@ -1,7 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Certificate } from '../model/certificate.model';
+import {Certificate, KEYSTOREDOWNLOADFORMAT, SimpleCertificate} from '../model/certificate.model';
 import { DialogComponent } from '../../shared/dialog/dialog.component';
 import { CertificateService } from '../service/certificate.service';
 
@@ -14,41 +14,71 @@ import { CertificateService } from '../service/certificate.service';
 })
 export class AllCertificationsComponent implements OnInit {
   @Input() role: 'admin' | 'ca' | 'ee' | null = null;
-  certificates: Certificate[] = [];
+  certificates: SimpleCertificate[] = [];
 
   showDialog = false;
   dialogMessage = '';
-  dialogType: 'info' | 'error' | 'confirm' = 'info';
-  selectedCert: Certificate | null = null;
+  dialogType: 'info' | 'error' | 'confirm' | 'download' = 'info';
+  selectedCert: SimpleCertificate | null = null;
+  downloadOptions: string[] = [".jks", ".p12"];
 
   constructor(
     private certificateService: CertificateService
   ) {}
 
   ngOnInit() {
-    this.certificateService.getAllCertificates().subscribe(cers=>{
-      this.certificates = cers;
+    this.certificateService.getAllCertificates().subscribe(certs=>{
+      this.certificates = certs;
     })
   }
 
-  revokeCertificate(cert: Certificate) {
+  revokeCertificate(cert: SimpleCertificate) {
     this.selectedCert = cert;
     this.dialogMessage = `Are you sure you want to revoke certificate ${cert.serialNumber}?`;
     this.dialogType = 'confirm';
     this.showDialog = true;
   }
 
-  downloadCertificate(cert: Certificate) {
+  downloadCertificate(cert: SimpleCertificate) {
     this.selectedCert = cert;
-    this.dialogMessage = `Downloading certificate ${cert.serialNumber}...`;
-    this.dialogType = 'info';
+    this.dialogMessage = `Download certificate ${cert.serialNumber}:`;
+    this.dialogType = 'download';
     this.showDialog = true;
   }
 
-  onConfirm() {
+  onConfirm(data?: {extension?: string, alias?: string, password?: string}) {
     if (this.selectedCert) {
-      console.log('Revoking:', this.selectedCert);
-      alert(`Revoked certificate ${this.selectedCert.serialNumber}!`);
+      if (this.dialogType === 'download' && data) {
+        let format: KEYSTOREDOWNLOADFORMAT = KEYSTOREDOWNLOADFORMAT.JKS;
+        switch (data.extension) {
+          case '.jks':
+            format = KEYSTOREDOWNLOADFORMAT.JKS;
+            break;
+          case '.p12':
+            format = KEYSTOREDOWNLOADFORMAT.PKCS12;
+            break;
+        }
+        this.certificateService.downloadCertificate(this.selectedCert.id, {
+          certificateId: this.selectedCert.id,
+          format: format,
+          password: data.password || '',
+          alias: data.alias || ''
+        })
+          .subscribe(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const extension = data.extension || '.jks';
+            a.download = `${this.selectedCert?.serialNumber}${extension}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+          });
+      } else if (this.dialogType === 'confirm') {
+        console.log('Revoking:', this.selectedCert);
+        alert(`Revoked certificate ${this.selectedCert.serialNumber}!`);
+      }
     }
     this.showDialog = false;
   }

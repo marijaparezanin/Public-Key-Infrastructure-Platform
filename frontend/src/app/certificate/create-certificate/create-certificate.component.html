@@ -112,7 +112,7 @@
     <select [(ngModel)]="certificateForm.issuerCertificateId" name="issuerCertificateId"
             #issuer="ngModel" (ngModelChange)="issuer.control.setErrors(customRequired(issuer.control, 'Select Issuer'))">
       <option *ngFor="let cert of availableCertificates" [value]="cert.id">
-        {{ cert.subjectCommonName }}
+        {{ cert.commonName }}
       </option>
     </select>
     <div *ngIf="issuer.invalid && (issuer.dirty || issuer.touched)" class="error">

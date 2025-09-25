@@ -38,7 +38,7 @@
     <form *ngIf="activeTab==='selectCA'" class="form">
       <label>Select CA Certificate</label>
       <select>
-        <option *ngFor="let ca of caCertificates">{{ca.subjectCommonName}}</option>
+        <option *ngFor="let ca of caCertificates">{{ca.commonName}}</option>
       </select>
 
       <button type="submit">Select</button>
