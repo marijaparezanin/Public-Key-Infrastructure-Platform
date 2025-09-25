@@ -1,7 +1,10 @@
 package com.ftn.pki.services.certificates;
 
+import com.ftn.pki.models.certificates.Certificate;
 import com.ftn.pki.models.certificates.CrlEntry;
 import com.ftn.pki.repositories.certificates.CrlEntryRepository;
+import com.ftn.pki.utils.cryptography.AESUtils;
+import com.ftn.pki.utils.cryptography.RSAUtils;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CRLHolder;
 import org.bouncycastle.cert.X509v2CRLBuilder;
@@ -11,9 +14,11 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
 import java.math.BigInteger;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+import java.util.Base64;
 import java.util.Date;
 
 @Service
@@ -24,6 +29,7 @@ public class CrlService {
     public CrlService(CrlEntryRepository crlEntryRepository) {
         this.crlEntryRepository = crlEntryRepository;
     }
+
 
     public X509CRLHolder generateCRL(X509Certificate issuerCert, PrivateKey issuerKey) throws Exception {
         X500Name issuerName = new X500Name(issuerCert.getSubjectX500Principal().getName());

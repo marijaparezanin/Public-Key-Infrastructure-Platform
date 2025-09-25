@@ -6,7 +6,7 @@ import {
   Certificate,
   CreateCertificateDto,
   CreatedCertificateDto,
-  DownloadRequestDTO,
+  DownloadRequestDTO, RequestRevokeDTO,
   SimpleCertificate
 } from '../../certificate/model/certificate.model';
 
@@ -21,6 +21,10 @@ export class CertificateService {
 
   getAllCertificates(): Observable<SimpleCertificate[]> {
     return this.http.get<SimpleCertificate[]>(`${this.apiUrl}/all`);
+  }
+
+  revokeCertificate(dto: RequestRevokeDTO): Observable<Blob> {
+    return this.http.put(`${this.apiUrl}/revoke`, dto, { responseType: 'blob' });
   }
 
   getApplicableCA():Observable<SimpleCertificate[]>{

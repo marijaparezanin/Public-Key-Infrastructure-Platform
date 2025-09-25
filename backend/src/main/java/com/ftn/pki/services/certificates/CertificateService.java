@@ -227,7 +227,7 @@ public class CertificateService {
         return AESUtils.secretKeyFromBase64(dekBase64);
     }
 
-    private PrivateKey loadAndDecryptPrivateKey(Certificate certEntity) throws Exception {
+    public PrivateKey loadAndDecryptPrivateKey(Certificate certEntity) throws Exception {
         byte[] encryptedPrivateKeyBytes = certEntity.getPrivateKeyEncrypted();
         String iv = certEntity.getIv();
 

@@ -57,7 +57,7 @@ public class CertificateController {
         return ResponseEntity.ok(certificateService.findAllSimple());
     }
 
-    @GetMapping("/revoke")
+    @PutMapping("/revoke")
     public ResponseEntity<Void> revokeCertificate(@RequestBody RequestRevokeDTO dto){
         try {
             certificateService.revokeCertificate(dto);

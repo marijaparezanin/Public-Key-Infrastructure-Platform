@@ -21,8 +21,23 @@
         <td>{{cert.startDate | date}}</td>
         <td>{{cert.endDate | date}}</td>
         <td>{{cert.revoked ? 'Revoked' : 'Valid'}}</td>
-        <td><button class="delete" (click)="revokeCertificate(cert)">Revoke</button></td>
-        <td><button class="edit" (click)="downloadCertificate(cert)">Download</button></td>
+        <td>
+          <button
+            class="delete"
+            (click)="revokeCertificate(cert)"
+            [disabled]="cert.revoked">
+            Revoke
+          </button>
+        </td>
+        <td>
+          <button
+            class="edit"
+            (click)="downloadCertificate(cert)"
+            [disabled]="cert.revoked">
+            Download
+          </button>
+        </td>
+
       </tr>
     </tbody>
   </table>
@@ -34,6 +49,7 @@
   [message]="dialogMessage"
   [type]="dialogType"
   [downloadOptions]="downloadOptions"
+  [revocationReasons]="revocationOptions"
   (close)="onClose()"
   (confirm)="onConfirm($event)">
 </app-dialog>

@@ -1,4 +1,5 @@
 import { Organization } from "./organization.model";
+import {RevocationReason} from './revocation-reason.model';
 
 export enum CertificateType{
     'ROOT',
@@ -75,4 +76,10 @@ export interface DownloadRequestDTO {
   password: string;
   alias: string;
   format: KEYSTOREDOWNLOADFORMAT;
+}
+
+export interface RequestRevokeDTO {
+  certificateId: string;
+  reason: RevocationReason;
+
 }

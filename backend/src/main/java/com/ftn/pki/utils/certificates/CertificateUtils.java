@@ -68,6 +68,27 @@ public class CertificateUtils {
                 );
             }
 
+            // Always add CRL Distribution Point
+            DistributionPoint[] points = new DistributionPoint[] {
+                    new DistributionPoint(
+                            new DistributionPointName(
+                                    new GeneralNames(
+                                            new GeneralName(GeneralName.uniformResourceIdentifier,
+                                                    "https://localhost:8081/api/crl/latest")
+                                    )
+                            ),
+                            null,
+                            null
+                    )
+            };
+
+            certGen.addExtension(
+                    Extension.cRLDistributionPoints,
+                    false,
+                    new CRLDistPoint(points)
+            );
+
+            // the optional extensions
             addExtensions(certGen, extensions);
 
             X509CertificateHolder certHolder = certGen.build(contentSigner);
