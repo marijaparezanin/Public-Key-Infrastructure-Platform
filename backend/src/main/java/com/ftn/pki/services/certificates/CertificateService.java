@@ -15,20 +15,28 @@ import com.ftn.pki.utils.certificates.CertificateUtils;
 import com.ftn.pki.utils.cryptography.AESUtils;
 import com.ftn.pki.utils.cryptography.RSAUtils;
 import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
+import org.bouncycastle.asn1.pkcs.Attribute;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
+import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.crypto.SecretKey;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
 import static com.ftn.pki.utils.certificates.CertificateUtils.getRDNValue;
+import static org.keycloak.common.util.PemUtils.pemToDer;
 
 @Service
 public class CertificateService {
@@ -349,5 +357,49 @@ public class CertificateService {
 
         return baos.toByteArray();
     }
+
+    public void createCertificateFromCsr(MultipartFile csrFile, UploadCsrDTO dto) throws Exception {
+        String pem = new String(csrFile.getBytes(), StandardCharsets.UTF_8);
+        byte[] der = CertificateUtils.pemToDer(pem);
+        PKCS10CertificationRequest csr = new PKCS10CertificationRequest(der);
+        JcaPKCS10CertificationRequest jcaReq = new JcaPKCS10CertificationRequest(csr);
+
+        if (!csr.isSignatureValid(new JcaContentVerifierProviderBuilder().build(jcaReq.getPublicKey()))) {
+            throw new IllegalArgumentException("CSR signature is not valid");
+        }
+
+        X500Name subjectX500 = csr.getSubject();
+
+        Attribute[] attributes = csr.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
+
+
+        Certificate issuerCertEntity = certificateRepository.findById(UUID.fromString(dto.getIssuerCertificateId()))
+                .orElseThrow(() -> new IllegalArgumentException("Issuer certificate not found"));
+
+        Subject subject = new Subject(jcaReq.getPublicKey(), subjectX500);
+
+        X509Certificate x509Certificate = CertificateUtils.generateCertificate(
+                subject,
+                new Issuer(loadAndDecryptPrivateKey(issuerCertEntity), CertificateUtils.getSubjectX500Name(issuerCertEntity.getX509Certificate())),
+                dto.getValidFrom(),
+                dto.getValidTo(),
+                new BigInteger(64, new SecureRandom()).toString(),
+                CertificateType.END_ENTITY,
+                null
+        );
+
+        Certificate certificateEntity = new Certificate();
+        certificateEntity.setSerialNumber(x509Certificate.getSerialNumber().toString());
+        certificateEntity.setStartDate(dto.getValidFrom());
+        certificateEntity.setEndDate(dto.getValidTo());
+        certificateEntity.setCertificateEncoded(x509Certificate.getEncoded());
+        certificateEntity.setIssuer(issuerCertEntity);
+        certificateEntity.setType(CertificateType.END_ENTITY);
+        certificateEntity.setOrganization(userService.getLoggedUser().getOrganization());
+        certificateEntity.setUser(userService.getLoggedUser());
+        certificateEntity.setRevoked(false);
+        certificateRepository.save(certificateEntity);
+    }
+
 }
 
