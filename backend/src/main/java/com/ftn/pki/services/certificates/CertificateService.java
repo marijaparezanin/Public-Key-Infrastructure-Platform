@@ -5,10 +5,12 @@ import com.ftn.pki.models.certificates.Certificate;
 import com.ftn.pki.models.certificates.CertificateType;
 import com.ftn.pki.models.certificates.Issuer;
 import com.ftn.pki.models.certificates.Subject;
+import com.ftn.pki.models.certificates.CrlEntry;
 import com.ftn.pki.models.organizations.Organization;
 import com.ftn.pki.models.users.User;
 import com.ftn.pki.models.users.UserRole;
 import com.ftn.pki.repositories.certificates.CertificateRepository;
+import com.ftn.pki.repositories.certificates.CrlEntryRepository;
 import com.ftn.pki.services.organizations.OrganizationService;
 import com.ftn.pki.services.users.UserService;
 import com.ftn.pki.utils.certificates.CertificateUtils;
@@ -34,16 +36,18 @@ import static com.ftn.pki.utils.certificates.CertificateUtils.getRDNValue;
 public class CertificateService {
 
     private final CertificateRepository certificateRepository;
+    private final CrlEntryRepository crlEntryRepository;
     private final AESUtils aesUtils;
     private final UserService userService;
     private final SecretKey masterKey;
     private final OrganizationService organizationService;
 
     @Autowired
-    public CertificateService(CertificateRepository certificateRepository,
+    public CertificateService(CertificateRepository certificateRepository, CrlEntryRepository crlEntryRepository,
                               AESUtils aesUtils, UserService userService,
                               @Value("${MASTER_KEY}") String base64MasterKey, OrganizationService organizationService) {
         this.certificateRepository = certificateRepository;
+        this.crlEntryRepository = crlEntryRepository;
         this.aesUtils = aesUtils;
         this.userService = userService;
         this.masterKey = AESUtils.secretKeyFromBase64(base64MasterKey);
@@ -281,7 +285,7 @@ public class CertificateService {
     }
 
     public void revokeCertificate(RequestRevokeDTO dto) {
-        Certificate cert = certificateRepository.findById(UUID.fromString(dto.getCertificateId()))
+        Certificate cert = certificateRepository.findById(dto.getCertificateId())
                 .orElseThrow(() -> new IllegalArgumentException("Certificate not found"));
 
         User currentUser = userService.getLoggedUser();
@@ -302,14 +306,26 @@ public class CertificateService {
         }
 
         cert.setRevoked(true);
+        cert.setRevocationReason(dto.getReason());
+        addToCrt(cert);
         certificateRepository.save(cert);
+
 
         for (Certificate childCert : certificateRepository.findAllByIssuerId(cert.getId())) {
             if (!childCert.isRevoked()) {
-                revokeCertificate(new RequestRevokeDTO(childCert.getId().toString(), dto.getReason()));
+                revokeCertificate(new RequestRevokeDTO(childCert.getId(), dto.getReason()));
             }
         }
     }
+
+    private void addToCrt(Certificate cert) {
+        CrlEntry crlEntry = new CrlEntry();
+        crlEntry.setCertificateSerialNumber(cert.getSerialNumber());
+        crlEntry.setRevocationDate(new Date());
+        crlEntry.setReason(cert.getRevocationReason());
+        crlEntryRepository.save(crlEntry);
+    }
+
 
     public byte[] getKeyStoreForDownload(DownloadRequestDTO dto) throws Exception {
         Certificate cert = certificateRepository.findById(dto.getCertificateId())
