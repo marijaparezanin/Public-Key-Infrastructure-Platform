@@ -33,6 +33,7 @@
   *ngIf="showDialog"
   [message]="dialogMessage"
   [type]="dialogType"
+  [downloadOptions]="downloadOptions"
   (close)="onClose()"
-  (confirm)="onConfirm()">
+  (confirm)="onConfirm($event)">
 </app-dialog>

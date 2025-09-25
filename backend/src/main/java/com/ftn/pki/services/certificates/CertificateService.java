@@ -252,7 +252,6 @@ public class CertificateService {
             }
             case ROLE_admin -> {
                 certs = certificateRepository.findAll();
-                System.out.println("Admin fetching all certificates, count: " + certs.size());
             }
             default -> throw new IllegalArgumentException("Unknown role");
         }
