@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {FormsModule} from '@angular/forms';
 
-export type DialogType = 'info' | 'error' | 'confirm' | 'download';
+export type DialogType = 'info' | 'error' | 'confirm' | 'download' | 'revoke';
 
 @Component({
   selector: 'app-dialog',
@@ -15,8 +15,10 @@ export class DialogComponent {
   @Input() message: string = '';
   @Input() type: DialogType = 'info';
   @Input() downloadOptions: string[] = [];
+  @Input() revocationReasons: string[] = [];
+
   @Output() close = new EventEmitter<void>();
-  @Output() confirm = new EventEmitter<{extension?: string, alias?: string, password?: string}>();
+  @Output() confirm = new EventEmitter<{extension?: string, alias?: string, password?: string, reason?: string}>();
 
   selectedOption: string = '';
   alias: string = '';
@@ -33,7 +35,12 @@ export class DialogComponent {
         alias: this.alias,
         password: this.password
       });
-    } else {
+    } else if(this.type === 'revoke') {
+      this.confirm.emit({
+        reason: this.selectedOption,
+      });
+    }
+    else {
       this.confirm.emit({});
     }
   }

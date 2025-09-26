@@ -2,7 +2,7 @@
 
   <!--Asigned to organization-->
   <div class="no-show" *ngIf="role==='admin'">
-    <label>Assigne to organization</label>
+    <label>Assign to organization</label>
     <select [(ngModel)]="certificateForm.assignToOrganizationName" name="assignToOrganizationName"
             #assignedTo="ngModel" (ngModelChange)="assignedTo.control.setErrors(customRequired(assignedTo.control, 'Select Assigned To'))">
       <option *ngFor="let org of allOrganizations" [value]="org.name">
@@ -84,7 +84,7 @@
             (ngModelChange)="certType.control.setErrors(customRequired(certType.control, 'Select Certificate Type'))">
       <option *ngIf="role ==='admin'">ROOT</option>
       <option>INTERMEDIATE</option>
-      <option>END-ENTITY</option>
+      <option>END_ENTITY</option>
     </select>
     <div *ngIf="certType.invalid && (certType.dirty || certType.touched)" class="error">
       *Select Certificate Type

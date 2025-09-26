@@ -6,6 +6,7 @@ import com.ftn.pki.models.organizations.Organization;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface CertificateRepository extends JpaRepository<Certificate, UUID> {
@@ -18,4 +19,6 @@ public interface CertificateRepository extends JpaRepository<Certificate, UUID> 
     List<Certificate> findAllByIssuerId(UUID id);
 
     List<Certificate> findAllByTypeIn(List<CertificateType> caTypes);
+
+    Optional<Certificate> findByType(CertificateType type);
 }

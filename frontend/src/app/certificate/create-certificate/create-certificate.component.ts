@@ -100,7 +100,15 @@ export class CreateCertificationComponent implements OnInit {
 
     this.certificateForm.extensions
     console.log('Issuing certificate:', this.certificateForm);
-    this.certificateService.createCertificate(this.certificateForm).subscribe();
+    this.certificateService.createCertificate(this.certificateForm).subscribe({
+      next: () => {
+        this.showDialogInfo('Certificate created successfully.');
+      },
+      error: err => {
+        console.error('Failed to create certificate:', err);
+        this.showDialogError('Failed to create certificate. Please try again.');
+      }
+    });
   }
 
   showDialogError(message: string) {
