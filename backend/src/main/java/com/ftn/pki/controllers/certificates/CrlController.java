@@ -9,12 +9,15 @@ import org.bouncycastle.cert.X509CRLHolder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/crl")
@@ -30,21 +33,27 @@ public class CrlController {
         this.certificateService = certificateService;
     }
 
-    @GetMapping("/latest")
-    public ResponseEntity<byte[]> getCrl() throws Exception {
-        // Uzmi root CA cert kao issuer
-        Certificate issuer = certificateRepository.findByType(CertificateType.ROOT)
-                .orElseThrow(() -> new IllegalStateException("Root CA not found"));
-        X509Certificate issuerCert = issuer.getX509Certificate();
-        PrivateKey issuerKey = certificateService.loadAndDecryptPrivateKey(issuer);
+    @GetMapping("/{issuerId}/crl/latest")
+    @Transactional(readOnly = true)
+    public ResponseEntity<byte[]> getCrl(@PathVariable UUID issuerId) {
+        try {
+            Certificate issuer = certificateRepository.findById(issuerId)
+                    .orElseThrow(() -> new IllegalStateException("Issuer not found"));
 
-        X509CRLHolder crlHolder = crlService.generateCRL(issuerCert, issuerKey);
+            PrivateKey issuerKey = certificateService.loadAndDecryptPrivateKey(issuer);
 
-        byte[] crlBytes = crlHolder.getEncoded();
+            X509CRLHolder crlHolder = crlService.generateCRL(issuer, issuerKey);
+            byte[] crlBytes = crlHolder.getEncoded();
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=crl.pem")
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .body(crlBytes);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + issuerId + "-crl.der")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(crlBytes);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(e.getMessage().getBytes());
+        }
     }
+
+
 }

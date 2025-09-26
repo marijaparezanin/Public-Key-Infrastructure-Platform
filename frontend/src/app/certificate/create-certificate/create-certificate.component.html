@@ -2,7 +2,7 @@
 
   <!--Asigned to organization-->
   <div class="no-show" *ngIf="role==='admin'">
-    <label>Assigne to organization</label>
+    <label>Assign to organization</label>
     <select [(ngModel)]="certificateForm.assignToOrganizationName" name="assignToOrganizationName"
             #assignedTo="ngModel" (ngModelChange)="assignedTo.control.setErrors(customRequired(assignedTo.control, 'Select Assigned To'))">
       <option *ngFor="let org of allOrganizations" [value]="org.name">

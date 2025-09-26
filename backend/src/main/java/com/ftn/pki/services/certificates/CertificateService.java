@@ -16,6 +16,7 @@ import com.ftn.pki.services.users.UserService;
 import com.ftn.pki.utils.certificates.CertificateUtils;
 import com.ftn.pki.utils.cryptography.AESUtils;
 import com.ftn.pki.utils.cryptography.RSAUtils;
+import jakarta.transaction.Transactional;
 import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
@@ -118,6 +119,7 @@ public class CertificateService {
         X509Certificate x509Certificate = CertificateUtils.generateCertificate(
                 subject,
                 issuer,
+                dto.getIssuerCertificateId(),
                 dto.getStartDate(),
                 dto.getEndDate(),
                 new BigInteger(64, new SecureRandom()).toString(), // Serial number
@@ -283,6 +285,7 @@ public class CertificateService {
         return dtos;
     }
 
+    @Transactional
     public void revokeCertificate(RequestRevokeDTO dto) {
         Certificate cert = certificateRepository.findById(dto.getCertificateId())
                 .orElseThrow(() -> new IllegalArgumentException("Certificate not found"));
@@ -306,7 +309,7 @@ public class CertificateService {
 
         cert.setRevoked(true);
         cert.setRevocationReason(dto.getReason());
-        addToCrt(cert);
+        addToCrl(cert);
         certificateRepository.save(cert);
 
 
@@ -317,11 +320,16 @@ public class CertificateService {
         }
     }
 
-    private void addToCrt(Certificate cert) {
+    private void addToCrl(Certificate cert) {
         CrlEntry crlEntry = new CrlEntry();
         crlEntry.setCertificateSerialNumber(cert.getSerialNumber());
         crlEntry.setRevocationDate(new Date());
         crlEntry.setReason(cert.getRevocationReason());
+        if (cert.getType() == CertificateType.ROOT){
+            crlEntry.setIssuerId(cert.getId());
+        } else {
+            crlEntry.setIssuerId(cert.getIssuer().getId());
+        }
         crlEntryRepository.save(crlEntry);
     }
 

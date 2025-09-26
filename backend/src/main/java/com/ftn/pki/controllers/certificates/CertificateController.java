@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -42,11 +43,13 @@ public class CertificateController {
     }
 
     @GetMapping("/applicable-ca")
+    @Transactional(readOnly = true)
     public ResponseEntity<Collection<SimpleCertificateDTO>> getAllCAForOrganization() {
         try {
             Collection<SimpleCertificateDTO> caCertificates = certificateService.findAllCAForMyOrganization();
             return ResponseEntity.ok(caCertificates);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .build();
         }
@@ -63,8 +66,10 @@ public class CertificateController {
             certificateService.revokeCertificate(dto);
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .build();
         }
