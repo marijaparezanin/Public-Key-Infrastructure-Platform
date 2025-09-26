@@ -33,7 +33,7 @@ public class CrlController {
         this.certificateService = certificateService;
     }
 
-    @GetMapping("/{issuerId}/crl/latest")
+    @GetMapping("/{issuerId}/latest")
     @Transactional(readOnly = true)
     public ResponseEntity<byte[]> getCrl(@PathVariable UUID issuerId) {
         try {

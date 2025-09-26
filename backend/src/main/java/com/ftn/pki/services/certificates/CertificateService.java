@@ -55,6 +55,7 @@ public class CertificateService {
         this.organizationService = organizationService;
     }
 
+    @Transactional
     public CreatedCertificateDTO createCertificate(CreateCertificateDTO dto) throws Exception {
         User currentUser = userService.getLoggedUser();
         Organization organization = null;
