@@ -7,7 +7,7 @@ import {
   CreateCertificateDto, CreateCertificateTemplateDto,
   CreatedCertificateDto,
   DownloadRequestDTO, RequestRevokeDTO,
-  SimpleCertificate
+  SimpleCertificate, SimpleCertificateTemplateDTO
 } from '../../certificate/model/certificate.model';
 
 @Injectable({ providedIn: 'root' })
@@ -39,10 +39,7 @@ export class CertificateService {
     return this.http.post<any>(`${this.apiUrl}/templates`, dto);
   }
 
-  getTemplatesForCA(id: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/templates/ca/${id}`, {});
+  getTemplatesForCA(id: string): Observable<SimpleCertificateTemplateDTO[]> {
+    return this.http.get<SimpleCertificateTemplateDTO[]>(`${this.apiUrl}/templates/ca/${id}`);
   }
-
-
-
 }

@@ -31,6 +31,7 @@ export class CreateCertificateTemplateComponent implements OnInit {
   dialogMessage: string = '';
   dialogType: 'info' | 'error' = 'error';
 
+
   constructor(
     private certificateService: CertificateService,
   ) {}

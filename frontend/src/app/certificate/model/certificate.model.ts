@@ -93,3 +93,12 @@ export interface CreateCertificateTemplateDto {
   keyUsage?: string;          // e.g. "digitalSignature,keyEncipherment"
   extendedKeyUsage?: string;  // e.g. "serverAuth,clientAuth"
 }
+
+export interface SimpleCertificateTemplateDTO {
+  name: string;
+  commonNameRegex: string;
+  subjectAlternativeNameRegex: string;
+  ttlDays: number;
+  keyUsage: string;
+  extendedKeyUsage: string;
+}

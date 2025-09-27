@@ -1,7 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { AbstractControl, FormsModule, NgForm } from '@angular/forms';
-import { CertificateType, CreateCertificateDto, SimpleCertificate } from '../model/certificate.model';
+import {
+  CertificateType,
+  CreateCertificateDto,
+  SimpleCertificate,
+  SimpleCertificateTemplateDTO
+} from '../model/certificate.model';
 import { DialogComponent } from "../../shared/dialog/dialog.component";
 import { CertificateService } from '../service/certificate.service';
 import { Organization } from '../model/organization.model';
@@ -51,6 +56,28 @@ export class CreateCertificationComponent implements OnInit {
 
   availableCertificates: SimpleCertificate[] = [];
   allOrganizations: Organization[] = [];
+  // inside your CertificateCreateComponent (where the certificate form is)
+  templatesForIssuer: SimpleCertificateTemplateDTO[] = [];
+  selectedTemplateId: string = '';
+
+
+  onIssuerChange(issuerId: string) {
+    this.templatesForIssuer = [];
+    this.selectedTemplateId = '';
+
+    if (!issuerId) return;
+
+    this.certificateService.getTemplatesForCA(issuerId).subscribe({
+      next: (templates: SimpleCertificateTemplateDTO[]) => {
+        this.templatesForIssuer = templates;
+      },
+      error: err => {
+        console.error('Failed to load templates for issuer:', err);
+        this.showDialogError('Failed to load templates for selected issuer.');
+      }
+    });
+  }
+
 
   constructor(private certificateService: CertificateService, private organizationService:OrganizationService) {}
 
@@ -128,4 +155,6 @@ export class CreateCertificationComponent implements OnInit {
   }
 
   protected readonly Object = Object;
+
+
 }

@@ -109,8 +109,11 @@
   <!-- Issuer -->
   <div *ngIf="certificateForm.type?.toString()?.toLocaleUpperCase() !== 'ROOT'" class="no-show">
     <label>Issuer</label>
-    <select [(ngModel)]="certificateForm.issuerCertificateId" name="issuerCertificateId"
-            #issuer="ngModel" (ngModelChange)="issuer.control.setErrors(customRequired(issuer.control, 'Select Issuer'))">
+    <select [(ngModel)]="certificateForm.issuerCertificateId"
+            name="issuerCertificateId"
+            #issuer="ngModel"
+            (ngModelChange)="onIssuerChange($event); issuer.control.setErrors(customRequired(issuer.control, 'Select Issuer'))">
+      <option value="">-- Choose Issuer --</option>
       <option *ngFor="let cert of availableCertificates" [value]="cert.id">
         {{ cert.commonName }}
       </option>
@@ -119,6 +122,24 @@
       *Select Issuer
     </div>
   </div>
+
+  <!-- Template -->
+  <div *ngIf="templatesForIssuer.length > 0" class="no-show">
+    <label>Template</label>
+    <select [(ngModel)]="selectedTemplateId"
+            name="templateId"
+            #template="ngModel"
+            (ngModelChange)="template.control.setErrors(customRequired(template.control, 'Select Template'))">
+      <option value="">-- Choose Template --</option>
+      <option *ngFor="let tmpl of templatesForIssuer" [value]="tmpl.name">
+        {{ tmpl.name }}
+      </option>
+    </select>
+    <div *ngIf="template.invalid && (template.dirty || template.touched)" class="error">
+      *Select Template
+    </div>
+  </div>
+
 
   <!-- Extensions -->
   <h3>Extensions</h3>
