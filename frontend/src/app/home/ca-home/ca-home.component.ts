@@ -5,13 +5,16 @@ import { NavbarComponent } from '../../navbar/navbar.component';
 import { CreateCertificationComponent } from '../../certificate/create-certificate/create-certificate.component';
 import { AllCertificationsComponent } from '../../certificate/all-certificates/all-certificates.component';
 import { DialogType, DialogComponent } from '../../shared/dialog/dialog.component';
+import {
+  CreateCertificateTemplateComponent
+} from '../../certificate/create-certificate-template/create-certificate-template.component';
 
 @Component({
   selector: 'app-ca-home',
   templateUrl: './ca-home.component.html',
   styleUrls: ['../../shared/page.css','../../shared/tabs.css','../../shared/table.css'],
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent, CreateCertificationComponent, AllCertificationsComponent, DialogComponent],
+  imports: [CommonModule, FormsModule, NavbarComponent, CreateCertificationComponent, AllCertificationsComponent, DialogComponent, CreateCertificateTemplateComponent],
 })
 export class CaHomeComponent {
   activeTab: string = 'issueCerts';

@@ -1,0 +1,68 @@
+<form class="form" (ngSubmit)="submitTemplate(templateForm)" #templateForm="ngForm">
+
+  <!-- Template Name -->
+  <label>Template Name</label>
+  <input type="text" [(ngModel)]="templateFormModel.name" name="name" placeholder="Template Name"
+         #name="ngModel" required
+         (ngModelChange)="name.control.setErrors(customRequired(name.control, 'Enter Template Name'))" />
+  <div *ngIf="name.invalid && (name.dirty || name.touched)" class="error">
+    *Enter Template Name
+  </div>
+
+  <!-- Issuer -->
+  <label>Issuer</label>
+  <select [(ngModel)]="templateFormModel.issuerCertificateId" name="issuerCertificateId"
+          #issuer="ngModel" required
+          (ngModelChange)="issuer.control.setErrors(customRequired(issuer.control, 'Select Issuer'))">
+    <option *ngFor="let cert of availableIssuers" [value]="cert.id">
+      {{ cert.commonName }}
+    </option>
+  </select>
+  <div *ngIf="issuer.invalid && (issuer.dirty || issuer.touched)" class="error">
+    *Select Issuer
+  </div>
+
+  <!-- Common Name Regex -->
+  <label>Common Name (CN) Regex</label>
+  <input type="text" [(ngModel)]="templateFormModel.commonNameRegex" name="commonNameRegex"
+         placeholder="e.g. .*\\.ftn\\.com" #cnRegex="ngModel" required
+         (ngModelChange)="cnRegex.control.setErrors(customRequired(cnRegex.control, 'Enter CN Regex'))" />
+  <div *ngIf="cnRegex.invalid && (cnRegex.dirty || cnRegex.touched)" class="error">
+    *Enter CN Regex
+  </div>
+
+  <!-- SAN Regex -->
+  <label>Subject Alternative Names (SAN) Regex</label>
+  <input type="text" [(ngModel)]="templateFormModel.subjectAlternativeNameRegex" name="sanRegex"
+         placeholder="Optional regex for SANs" />
+
+  <!-- TTL -->
+  <label>Time To Live (days)</label>
+  <input type="number" [(ngModel)]="templateFormModel.ttlDays" name="ttlDays"
+         placeholder="e.g. 365" #ttl="ngModel" required
+         (ngModelChange)="ttl.control.setErrors(customRequired(ttl.control, 'Enter TTL in days'))" />
+  <div *ngIf="ttl.invalid && (ttl.dirty || ttl.touched)" class="error">
+    *Enter TTL in days
+  </div>
+
+  <!-- Key Usage -->
+  <label>Key Usage (CSV)</label>
+  <input type="text" [(ngModel)]="templateFormModel.keyUsage" name="keyUsage"
+         placeholder="e.g. digitalSignature,keyEncipherment" />
+
+  <!-- Extended Key Usage -->
+  <label>Extended Key Usage (CSV)</label>
+  <input type="text" [(ngModel)]="templateFormModel.extendedKeyUsage" name="extendedKeyUsage"
+         placeholder="e.g. serverAuth,clientAuth" />
+
+  <!-- Submit -->
+  <button type="submit">Create Template</button>
+</form>
+
+<!-- Dialog -->
+<app-dialog
+  *ngIf="showDialog"
+  [message]="dialogMessage"
+  [type]="dialogType"
+  (close)="onDialogClose()">
+</app-dialog>

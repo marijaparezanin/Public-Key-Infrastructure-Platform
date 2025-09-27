@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import {environment} from '../../../environments/environment';
 import {
   Certificate,
-  CreateCertificateDto,
+  CreateCertificateDto, CreateCertificateTemplateDto,
   CreatedCertificateDto,
   DownloadRequestDTO, RequestRevokeDTO,
   SimpleCertificate
@@ -34,5 +34,10 @@ export class CertificateService {
   downloadCertificate(id: string, dto: DownloadRequestDTO): Observable<Blob> {
     return this.http.post(`${this.apiUrl}/download`, dto, { responseType: 'blob' });
   }
+
+  createTemplate(dto: CreateCertificateTemplateDto): Observable<any>{
+    return this.http.post<any>(`${this.apiUrl}/template`, dto);
+  }
+
 
 }
