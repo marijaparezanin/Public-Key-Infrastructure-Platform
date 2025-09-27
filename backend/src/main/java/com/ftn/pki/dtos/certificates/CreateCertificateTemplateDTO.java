@@ -16,9 +16,8 @@ public class CreateCertificateTemplateDTO {
     private String name;
     private UUID issuerCertificateId;
     private String commonNameRegex;
-    private String subjectAlternativeNamesRegex;
+    private String subjectAlternativeNameRegex;
     private int ttlDays;
     private String keyUsage;
     private String extendedKeyUsage;
-
 }

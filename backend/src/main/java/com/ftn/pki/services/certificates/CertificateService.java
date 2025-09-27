@@ -383,7 +383,9 @@ public class CertificateService {
     public void createTemplate(CreateCertificateTemplateDTO dto) throws Exception {
         User currentUser = userService.getLoggedUser();
         Organization organization = currentUser.getOrganization();
-
+        System.out.println("Organization: " + organization.getName());
+        System.out.println("Organization2: " + organization);
+        
         Certificate issuerCertEntity = null;
         if (dto.getIssuerCertificateId() == null) {
             throw new IllegalArgumentException("Issuer certificate ID must be provided for non-root certificates");
@@ -398,6 +400,7 @@ public class CertificateService {
 
         // --- 7. Create Certificate ---
         CertificateTemplate certificateTemplate = new CertificateTemplate();
+        certificateTemplate.setName(dto.getName());
         certificateTemplate.setIssuer(issuerCertEntity);
         certificateTemplate.setOrganization(organization);
         certificateTemplate.setCommonNameRegex(dto.getCommonNameRegex());
