@@ -36,8 +36,13 @@ export class CertificateService {
   }
 
   createTemplate(dto: CreateCertificateTemplateDto): Observable<any>{
-    return this.http.post<any>(`${this.apiUrl}/template`, dto);
+    return this.http.post<any>(`${this.apiUrl}/templates`, dto);
   }
+
+  getTemplatesForCA(id: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/templates/ca/${id}`, {});
+  }
+
 
 
 }

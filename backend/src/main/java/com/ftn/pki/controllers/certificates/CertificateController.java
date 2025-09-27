@@ -94,16 +94,5 @@ public class CertificateController {
     }
 
 
-    @PostMapping("/template")
-    public ResponseEntity<Void> createCertificateTemplate(@RequestBody CreateCertificateTemplateDTO dto) {
-        try {
-            certificateService.createTemplate(dto);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println(e.toString());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(null);
-        }
-    }
+
 }

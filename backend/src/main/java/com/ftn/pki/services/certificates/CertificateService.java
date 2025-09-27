@@ -35,7 +35,6 @@ import static com.ftn.pki.utils.certificates.CertificateUtils.getRDNValue;
 public class CertificateService {
 
     private final CertificateRepository certificateRepository;
-    private final CertificateTemplateRepository certificateTemplateRepository;
     private final CrlEntryRepository crlEntryRepository;
     private final AESUtils aesUtils;
     private final UserService userService;
@@ -47,7 +46,6 @@ public class CertificateService {
                               AESUtils aesUtils, UserService userService,
                               @Value("${MASTER_KEY}") String base64MasterKey, OrganizationService organizationService) {
         this.certificateRepository = certificateRepository;
-        this.certificateTemplateRepository = certificateTemplateRepository;
         this.crlEntryRepository = crlEntryRepository;
         this.aesUtils = aesUtils;
         this.userService = userService;
@@ -376,42 +374,6 @@ public class CertificateService {
         return baos.toByteArray();
     }
 
-
-
-
-    @Transactional
-    public void createTemplate(CreateCertificateTemplateDTO dto) throws Exception {
-        User currentUser = userService.getLoggedUser();
-        Organization organization = currentUser.getOrganization();
-        System.out.println("Organization: " + organization.getName());
-        System.out.println("Organization2: " + organization);
-        
-        Certificate issuerCertEntity = null;
-        if (dto.getIssuerCertificateId() == null) {
-            throw new IllegalArgumentException("Issuer certificate ID must be provided for non-root certificates");
-        }
-        issuerCertEntity = certificateRepository.findById(dto.getIssuerCertificateId())
-                .orElseThrow(() -> new IllegalArgumentException("Issuer certificate not found"));
-
-        if (!isCertificateValid(issuerCertEntity)) {
-            throw new IllegalArgumentException("Issuer certificate is not valid");
-        }
-
-
-        // --- 7. Create Certificate ---
-        CertificateTemplate certificateTemplate = new CertificateTemplate();
-        certificateTemplate.setName(dto.getName());
-        certificateTemplate.setIssuer(issuerCertEntity);
-        certificateTemplate.setOrganization(organization);
-        certificateTemplate.setCommonNameRegex(dto.getCommonNameRegex());
-        certificateTemplate.setSubjectAlternativeNameRegex(dto.getSubjectAlternativeNameRegex());
-        certificateTemplate.setTtlDays(dto.getTtlDays());
-        certificateTemplate.setKeyUsage(dto.getKeyUsage());
-        certificateTemplate.setExtendedKeyUsage(dto.getExtendedKeyUsage());
-
-
-        certificateTemplateRepository.save(certificateTemplate);
-    }
 
 }
 
