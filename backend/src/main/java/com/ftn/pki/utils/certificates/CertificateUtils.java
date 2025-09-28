@@ -388,4 +388,13 @@ public class CertificateUtils {
         return Base64.getDecoder().decode(base64);
     }
 
+    public static String derToPem(byte[] derBytes) {
+        String base64 = Base64.getMimeEncoder(64, "\n".getBytes())
+                .encodeToString(derBytes);
+        return "-----BEGIN CERTIFICATE-----\n" +
+                base64 +
+                "\n-----END CERTIFICATE-----\n";
+    }
+
+
 }

@@ -162,5 +162,7 @@
   *ngIf="showDialog"
   [message]="dialogMessage"
   [type]="dialogType"
-  (close)="onDialogClose()">
+  (close)="onDialogClose()"
+  (confirm)="onDialogConfirm($event)"
+>
 </app-dialog>

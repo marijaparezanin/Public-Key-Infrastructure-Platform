@@ -41,11 +41,6 @@ export class EeHomeComponent implements OnInit {
     this.dialogVisible = false;
   }
 
-  onDialogConfirm() {
-    console.log("Confirmed action!");
-    this.dialogVisible = false;
-  }
-
   uploadCSR(formData: any) {
     console.log('Upload CSR:', formData);
     this.showDialog('CSR and Key uploaded successfully!', 'info');
@@ -54,10 +49,5 @@ export class EeHomeComponent implements OnInit {
   generateCertificate(formData: any) {
     console.log('Generate Certificate:', formData);
     this.showDialog('Certificate generated successfully!', 'info');
-  }
-
-  selectCACertificate(selectedCA: SimpleCertificate) {
-    console.log('Selected CA Certificate:', selectedCA);
-    this.showDialog(`CA Certificate "${selectedCA.commonName}" selected.`, 'confirm');
   }
 }

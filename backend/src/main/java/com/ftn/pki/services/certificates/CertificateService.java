@@ -1,11 +1,8 @@
 package com.ftn.pki.services.certificates;
 
 import com.ftn.pki.dtos.certificates.*;
+import com.ftn.pki.models.certificates.*;
 import com.ftn.pki.models.certificates.Certificate;
-import com.ftn.pki.models.certificates.CertificateType;
-import com.ftn.pki.models.certificates.Issuer;
-import com.ftn.pki.models.certificates.Subject;
-import com.ftn.pki.models.certificates.CrlEntry;
 import com.ftn.pki.models.organizations.Organization;
 import com.ftn.pki.models.users.User;
 import com.ftn.pki.models.users.UserRole;
@@ -39,7 +36,6 @@ import java.security.cert.X509Certificate;
 import java.util.*;
 
 import static com.ftn.pki.utils.certificates.CertificateUtils.getRDNValue;
-import static org.keycloak.common.util.PemUtils.pemToDer;
 
 @Service
 public class CertificateService {
@@ -65,6 +61,42 @@ public class CertificateService {
 
     @Transactional
     public CreatedCertificateDTO createCertificate(CreateCertificateDTO dto) throws Exception {
+        Certificate certificateEntity = getCertificateEntity(dto);
+
+        certificateRepository.save(certificateEntity);
+
+        return new CreatedCertificateDTO(
+                certificateEntity.getId(),
+                certificateEntity.getType(),
+                dto.getCommonName(),
+                dto.getSurname(),
+                dto.getGivenName(),
+                dto.getOrganization(),
+                dto.getOrganizationalUnit(),
+                dto.getCountry(),
+                dto.getEmail(),
+                certificateEntity.getStartDate(),
+                certificateEntity.getEndDate(),
+                dto.getExtensions()
+        );
+    }
+
+    @Transactional
+    public byte[] createEECertificate(CreateEECertificateDTO dto) throws Exception {
+        dto.setType(CertificateType.END_ENTITY);
+        Certificate certificateEntity = getCertificateEntity(dto);
+        byte[] keystore = getKeystoreBytes(certificateEntity,
+                dto.getKeyStoreFormat(),
+                dto.getPassword(),
+                dto.getAlias());
+        certificateEntity.setIv(null);
+        certificateEntity.setPrivateKeyEncrypted(null);
+        certificateRepository.save(certificateEntity);
+
+        return keystore;
+    }
+
+    private Certificate getCertificateEntity(CreateCertificateDTO dto) throws Exception {
         User currentUser = userService.getLoggedUser();
         Organization organization = null;
         if (currentUser.getRole() == UserRole.ROLE_admin && dto.getType() == CertificateType.INTERMEDIATE) {
@@ -119,7 +151,7 @@ public class CertificateService {
                 throw new IllegalArgumentException("Issuer certificate expires before the new certificate");
             }
 
-            if (issuerCertEntity.getStartDate().before(dto.getStartDate())) {
+            if (issuerCertEntity.getStartDate().after(dto.getStartDate())) {
                 throw new IllegalArgumentException("Issuer certificate is not valid at the start date of the new certificate");
             }
 
@@ -170,23 +202,7 @@ public class CertificateService {
         if (!isCertificateValid(certificateEntity)) {
             throw new IllegalArgumentException("Generated certificate is not valid");
         }
-
-        certificateRepository.save(certificateEntity);
-
-        return new CreatedCertificateDTO(
-                certificateEntity.getId(),
-                certificateEntity.getType(),
-                dto.getCommonName(),
-                dto.getSurname(),
-                dto.getGivenName(),
-                dto.getOrganization(),
-                dto.getOrganizationalUnit(),
-                dto.getCountry(),
-                dto.getEmail(),
-                certificateEntity.getStartDate(),
-                certificateEntity.getEndDate(),
-                dto.getExtensions()
-        );
+        return certificateEntity;
     }
 
     public Collection<SimpleCertificateDTO> findAllCAForMyOrganization() {
@@ -217,7 +233,8 @@ public class CertificateService {
                             cert.getEndDate(),
                             cert.isRevoked(),
                             isCertificateValid(cert),
-                            cert.getSerialNumber()
+                            cert.getSerialNumber(),
+                            cert.getUser().getRole() != UserRole.ROLE_ee_user
                             )
                     );
                 }
@@ -263,6 +280,7 @@ public class CertificateService {
 
     }
 
+    @Transactional
     public Collection<SimpleCertificateDTO> findAllSimple(){
         List<Certificate> certs = null;
         ArrayList<SimpleCertificateDTO> dtos = new ArrayList<>();
@@ -296,7 +314,8 @@ public class CertificateService {
                         cert.getEndDate(),
                         cert.isRevoked(),
                         isCertificateValid(cert),
-                        cert.getSerialNumber()
+                        cert.getSerialNumber(),
+                        cert.getUser().getRole() != UserRole.ROLE_ee_user
                 );
                 dtos.add(dto);
             } catch (Exception e) {
@@ -359,6 +378,10 @@ public class CertificateService {
         Certificate cert = certificateRepository.findById(dto.getCertificateId())
                 .orElseThrow(() -> new IllegalArgumentException("Certificate not found"));
 
+        return getKeystoreBytes(cert, dto.getFormat(), dto.getPassword(), dto.getAlias());
+    }
+
+    private byte[] getKeystoreBytes(Certificate cert, KEYSTOREDOWNLOADFORMAT format, String password, String alias) throws Exception {
         User currentUser = userService.getLoggedUser();
         if (currentUser.getRole() == UserRole.ROLE_ee_user) {
             if (!cert.getUser().getId().equals(currentUser.getId())) {
@@ -375,27 +398,28 @@ public class CertificateService {
         X509Certificate x509Certificate = cert.getX509Certificate();
         PrivateKey privateKey = loadAndDecryptPrivateKey(cert);
 
-        KeyStore ks = switch (dto.getFormat()) {
+        KeyStore ks = switch (format) {
             case PKCS12 -> KeyStore.getInstance("PKCS12");
             case JKS -> KeyStore.getInstance("JKS");
-            default -> throw new IllegalArgumentException("Unknown format: " + dto.getFormat());
+            default -> throw new IllegalArgumentException("Unknown format: " + format);
         };
         ks.load(null, null);
         ks.setKeyEntry(
-                dto.getAlias(),
+                alias,
                 privateKey,
-                dto.getPassword().toCharArray(),
+                password.toCharArray(),
                 new java.security.cert.Certificate[]{x509Certificate}
         );
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ks.store(baos, dto.getPassword().toCharArray());
+        ks.store(baos, password.toCharArray());
 
 
         return baos.toByteArray();
     }
 
-    public void createCertificateFromCsr(MultipartFile csrFile, UploadCsrDTO dto) throws Exception {
+    @Transactional
+    public byte[] createCertificateFromCsr(MultipartFile csrFile, UploadCsrDTO dto) throws Exception {
         String pem = new String(csrFile.getBytes(), StandardCharsets.UTF_8);
         byte[] der = CertificateUtils.pemToDer(pem);
         PKCS10CertificationRequest csr = new PKCS10CertificationRequest(der);
@@ -412,6 +436,18 @@ public class CertificateService {
 
         Certificate issuerCertEntity = certificateRepository.findById(UUID.fromString(dto.getIssuerCertificateId()))
                 .orElseThrow(() -> new IllegalArgumentException("Issuer certificate not found"));
+
+        if (!isCertificateValid(issuerCertEntity)) {
+            throw new IllegalArgumentException("Issuer certificate is not valid");
+        }
+
+        if (issuerCertEntity.getEndDate().before(dto.getValidTo())) {
+            throw new IllegalArgumentException("Issuer certificate expires before the new certificate");
+        }
+
+        if (issuerCertEntity.getStartDate().after(dto.getValidFrom())) {
+            throw new IllegalArgumentException("Issuer certificate is not valid at the start date of the new certificate");
+        }
 
         Subject subject = new Subject(jcaReq.getPublicKey(), subjectX500);
 
@@ -437,6 +473,8 @@ public class CertificateService {
         certificateEntity.setUser(userService.getLoggedUser());
         certificateEntity.setRevoked(false);
         certificateRepository.save(certificateEntity);
+
+        return CertificateUtils.derToPem(x509Certificate.getEncoded()).getBytes(StandardCharsets.UTF_8);
     }
 
 }

@@ -5,9 +5,8 @@
 
   <!-- Tabs -->
   <div class="tabs">
-    <button [class.active]="activeTab==='uploadGenerate'" (click)="activeTab='uploadGenerate'">Upload / Generate</button>
-    <button [class.active]="activeTab==='selectCA'" (click)="activeTab='selectCA'">Select CA Certificate</button>
-    <button [class.active]="activeTab==='revokeAndDownload'" (click)="activeTab='revokeAndDownload'">Revoke/Download Certificate & Key</button>
+    <button [class.active]="activeTab==='uploadGenerate'" (click)="activeTab='uploadGenerate'">Get Certificate</button>
+    <button [class.active]="activeTab==='revokeAndDownload'" (click)="activeTab='revokeAndDownload'">My Certificates</button>
   </div>
 
   <!-- Tab content -->
@@ -34,16 +33,6 @@
 
     </form>
 
-    <!-- Select CA Certificate Form -->
-    <form *ngIf="activeTab==='selectCA'" class="form">
-      <label>Select CA Certificate</label>
-      <select>
-        <option *ngFor="let ca of caCertificates">{{ca.commonName}}</option>
-      </select>
-
-      <button type="submit">Select</button>
-    </form>
-
     <!-- Revoke and Download Certificates -->
     <app-all-certifications *ngIf="activeTab==='revokeAndDownload'" [role]="'ee'" class="dashbord-column"></app-all-certifications>
 
@@ -54,6 +43,5 @@
   *ngIf="dialogVisible"
   [message]="dialogMessage"
   [type]="dialogType"
-  (close)="onDialogClose()"
-  (confirm)="onDialogConfirm()">
+  (close)="onDialogClose()">
 </app-dialog>

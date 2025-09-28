@@ -33,6 +33,7 @@
         </td>
         <td>
           <button
+            *ngIf="cert.downloadable"
             class="edit"
             (click)="downloadCertificate(cert)"
             [disabled]="cert.revoked">
@@ -50,7 +51,6 @@
   *ngIf="showDialog"
   [message]="dialogMessage"
   [type]="dialogType"
-  [downloadOptions]="downloadOptions"
   [revocationReasons]="revocationOptions"
   (close)="onClose()"
   (confirm)="onConfirm($event)">
