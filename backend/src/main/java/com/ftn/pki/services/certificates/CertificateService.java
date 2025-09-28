@@ -70,6 +70,10 @@ public class CertificateService {
             throw new IllegalArgumentException("User does not belong to any organization");
         }
 
+        if (dto.getStartDate().after(dto.getEndDate())) {
+            throw new IllegalArgumentException("Start date must be before end date");
+        }
+
         // --- 2. Generate Subject key pair ---
         KeyPair subjectKeyPair = RSAUtils.generateRSAKeyPair();
         PublicKey subjectPublicKey = subjectKeyPair.getPublic();
@@ -93,7 +97,7 @@ public class CertificateService {
         Certificate issuerCertEntity = null;
         if (dto.getIssuerCertificateId().isEmpty() && dto.getType() == CertificateType.ROOT) {
             // Self-signed Root
-            issuer = new Issuer(subjectPrivateKey, subjectX500);
+            issuer = new Issuer(subjectPrivateKey, subjectPublicKey,subjectX500);
         } else {
             if (dto.getIssuerCertificateId() == null) {
                 throw new IllegalArgumentException("Issuer certificate ID must be provided for non-root certificates");
@@ -105,9 +109,17 @@ public class CertificateService {
                 throw new IllegalArgumentException("Issuer certificate is not valid");
             }
 
+            if (issuerCertEntity.getEndDate().before(dto.getEndDate())) {
+                throw new IllegalArgumentException("Issuer certificate expires before the new certificate");
+            }
+
+            if (issuerCertEntity.getStartDate().before(dto.getStartDate())) {
+                throw new IllegalArgumentException("Issuer certificate is not valid at the start date of the new certificate");
+            }
+
             X509Certificate issuerCert = issuerCertEntity.getX509Certificate();
             PrivateKey decriptedIssuerPrivateKey = loadAndDecryptPrivateKey(issuerCertEntity);
-            issuer = new Issuer(decriptedIssuerPrivateKey, CertificateUtils.getSubjectX500Name(issuerCert));
+            issuer = new Issuer(decriptedIssuerPrivateKey, issuerCert.getPublicKey(), CertificateUtils.getSubjectX500Name(issuerCert));
         }
 
         if (dto.getType() == CertificateType.END_ENTITY && dto.getIssuerCertificateId() == null) {
@@ -380,7 +392,7 @@ public class CertificateService {
 
         X509Certificate x509Certificate = CertificateUtils.generateCertificate(
                 subject,
-                new Issuer(loadAndDecryptPrivateKey(issuerCertEntity), CertificateUtils.getSubjectX500Name(issuerCertEntity.getX509Certificate())),
+                new Issuer(loadAndDecryptPrivateKey(issuerCertEntity), issuerCertEntity.getX509Certificate().getPublicKey(), CertificateUtils.getSubjectX500Name(issuerCertEntity.getX509Certificate())),
                 dto.getValidFrom(),
                 dto.getValidTo(),
                 new BigInteger(64, new SecureRandom()).toString(),

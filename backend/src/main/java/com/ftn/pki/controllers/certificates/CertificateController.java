@@ -48,6 +48,7 @@ public class CertificateController {
             Collection<SimpleCertificateDTO> caCertificates = certificateService.findAllCAForMyOrganization();
             return ResponseEntity.ok(caCertificates);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .build();
         }
