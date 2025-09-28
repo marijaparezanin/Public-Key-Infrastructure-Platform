@@ -16,8 +16,7 @@ import { SimpleCertificate } from '../../certificate/model/certificate.model';
   styleUrls: ['../../shared/page.css','../../shared/tabs.css','../../shared/table.css','../../shared/form.css']
 })
 export class EeHomeComponent implements OnInit {
-  activeTab: string = 'uploadGenerate';
-  activeSubTab: 'csr' | 'auto' = 'csr';
+  activeTab: string = 'csr';
   caCertificates: SimpleCertificate[] = [];
 
   dialogVisible = false;

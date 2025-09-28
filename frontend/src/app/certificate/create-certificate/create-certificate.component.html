@@ -146,7 +146,10 @@
 
     <tr *ngFor="let key of extensionOrder; let i = index; trackBy: trackByExtensionKey">
       <td>
-        <select [ngModel]="key" (ngModelChange)="onExtensionKeyChange(i, $event)" name="extKey{{i}}">
+        <select [ngModel]="key"
+                (ngModelChange)="onExtensionKeyChange(i, $event)"
+                name="extKey{{i}}"
+                [disabled]="templateAddedKeys.has(key)">
           <option *ngFor="let k of supportedExtensions" [value]="k" [disabled]="isKeyDisabled(k, key)">
             {{ k }}
           </option>

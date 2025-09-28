@@ -5,8 +5,7 @@ import {environment} from '../../../environments/environment';
 import {
   Certificate,
   CreateCertificateDto, CreateCertificateTemplateDto,
-  CreatedCertificateDto,
-  CreateEECertificateDto,
+  CreatedCertificateDto, CreateEECertificateDto,
   DownloadRequestDTO, RequestRevokeDTO,
   SimpleCertificate, SimpleCertificateTemplateDTO
 } from '../../certificate/model/certificate.model';
