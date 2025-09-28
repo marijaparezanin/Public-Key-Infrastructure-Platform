@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -33,6 +34,10 @@ public class CertificateTemplateService {
     }
 
 
+    public boolean findByName(String name){
+        Optional<CertificateTemplate>  certificateTemplate = certificateTemplateRepository.findByName(name);
+        return certificateTemplate.isPresent();
+    }
 
     @Transactional
     public void createTemplate(CreateCertificateTemplateDTO dto) throws Exception {

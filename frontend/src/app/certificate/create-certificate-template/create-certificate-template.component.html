@@ -2,12 +2,19 @@
 
   <!-- Template Name -->
   <label>Template Name</label>
-  <input type="text" [(ngModel)]="templateFormModel.name" name="name" placeholder="Template Name"
-         #name="ngModel" required
+  <input type="text"
+         [(ngModel)]="templateFormModel.name"
+         name="name"
+         placeholder="Template Name"
+         #name="ngModel"
+         required
          (ngModelChange)="name.control.setErrors(customRequired(name.control, 'Enter Template Name'))" />
+
   <div *ngIf="name.invalid && (name.dirty || name.touched)" class="error">
-    *Enter Template Name
+    {{ name.errors?.['required'] ? '*Enter Template Name' : '' }}
+    {{ name.errors?.['nameTaken'] ? '*This template name is already taken' : '' }}
   </div>
+
 
   <!-- Issuer -->
   <label>Issuer</label>
@@ -37,11 +44,14 @@
   <!-- TTL -->
   <label>Time To Live (days)</label>
   <input type="number" [(ngModel)]="templateFormModel.ttlDays" name="ttlDays"
-         placeholder="e.g. 365" #ttl="ngModel" required
-         (ngModelChange)="ttl.control.setErrors(customRequired(ttl.control, 'Enter TTL in days'))" />
+         placeholder="e.g. 365" #ttl="ngModel" required min="1"
+         (ngModelChange)="validateTTL(ttl.control)" />
   <div *ngIf="ttl.invalid && (ttl.dirty || ttl.touched)" class="error">
-    *Enter TTL in days
+    {{ ttl.errors?.['required'] ? '*Enter TTL in days' : '' }}
+    {{ ttl.errors?.['min'] ? '*TTL must be at least 1 day' : '' }}
   </div>
+
+
 
   <!-- Key Usage Checkboxes -->
   <label>Key Usage</label>

@@ -65,17 +65,35 @@ export class CreateCertificateTemplateComponent implements OnInit {
 
   submitTemplate(form: NgForm) {
     form.form.markAllAsTouched();
-    if (!form.valid) {
+
+    const nameControl = form.controls['name'];
+    if (!nameControl?.valid) {
       this.showDialogError('Please fill all required fields correctly.');
       return;
     }
 
-    console.log('Creating template:', this.templateFormModel);
-    this.certificateService.createTemplate(this.templateFormModel).subscribe({
-      next: () => this.showDialogInfo('Template created successfully.'),
-      error: err => {
-        console.error('Failed to create template:', err);
-        this.showDialogError('Failed to create template. Please try again.');
+    // Call backend to check if name is taken
+    this.certificateService.isTemplateNameTaken(this.templateFormModel.name).subscribe({
+      next: (taken: boolean) => {
+        if (taken) {
+          if (nameControl) {
+            nameControl.setErrors({ ...nameControl.errors, nameTaken: true });
+          }
+          return; // stop submission
+        }
+
+        // Name is free → submit the template
+        this.certificateService.createTemplate(this.templateFormModel).subscribe({
+          next: () => this.showDialogInfo('Template created successfully.'),
+          error: (err) => {
+            console.error('Failed to create template:', err);
+            this.showDialogError('Failed to create template. Please try again.');
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Error checking template name:', err);
+        this.showDialogError('Could not check template name. Please try again.');
       }
     });
   }
@@ -95,4 +113,15 @@ export class CreateCertificateTemplateComponent implements OnInit {
   onDialogClose() {
     this.showDialog = false;
   }
+
+  validateTTL(control: AbstractControl) {
+    if (!control.value) {
+      control.setErrors({ required: 'Enter TTL in days' });
+    } else if (control.value < 1) {
+      control.setErrors({ min: 'TTL must be at least 1 day' });
+    } else {
+      control.setErrors(null);
+    }
+  }
+
 }

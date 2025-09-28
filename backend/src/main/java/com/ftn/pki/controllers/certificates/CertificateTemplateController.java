@@ -46,4 +46,16 @@ public class CertificateTemplateController {
                     .build();
         }
     }
+
+    @GetMapping("/{name}")
+    public ResponseEntity<Boolean> getTemplateNameExists(@PathVariable String name) {
+        try {
+            boolean exists = certificateTemplateService.findByName(name);
+            return ResponseEntity.ok(exists);
+        } catch (Exception e) {
+            e.printStackTrace(); // Log the exception
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(false);
+        }
+    }
+
 }

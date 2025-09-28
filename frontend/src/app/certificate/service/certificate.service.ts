@@ -42,4 +42,9 @@ export class CertificateService {
   getTemplatesForCA(id: string): Observable<SimpleCertificateTemplateDTO[]> {
     return this.http.get<SimpleCertificateTemplateDTO[]>(`${this.apiUrl}/templates/ca/${id}`);
   }
+
+  isTemplateNameTaken(name: string): Observable<boolean> {
+    return this.http.get<boolean>(`${this.apiUrl}/templates/${name}`);
+  }
+
 }
