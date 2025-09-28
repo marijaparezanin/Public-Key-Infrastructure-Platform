@@ -31,7 +31,7 @@ public class Certificate {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private CertificateType type;
 
@@ -49,7 +49,7 @@ public class Certificate {
     @Lob
     private byte[] privateKeyEncrypted; // private key encrypted with DEK
 
-    @Column(nullable = false)
+    @Column
     private String iv; // IV for AES encryption of private key with DEK
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -21,7 +21,6 @@ export class AllCertificationsComponent implements OnInit {
   dialogMessage = '';
   dialogType: 'info' | 'error' | 'confirm' | 'download' | 'revoke' = 'info';
   selectedCert: SimpleCertificate | null = null;
-  downloadOptions: string[] = [".jks", ".p12"];
   revocationOptions: string[] = Object.values(RevocationReason);
   selectedRevocationReason: RevocationReason = RevocationReason.UNSPECIFIED;
 

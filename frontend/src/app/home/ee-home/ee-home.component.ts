@@ -17,6 +17,7 @@ import { SimpleCertificate } from '../../certificate/model/certificate.model';
 })
 export class EeHomeComponent implements OnInit {
   activeTab: string = 'uploadGenerate';
+  activeSubTab: 'csr' | 'auto' = 'csr';
   caCertificates: SimpleCertificate[] = [];
 
   dialogVisible = false;
@@ -41,23 +42,49 @@ export class EeHomeComponent implements OnInit {
     this.dialogVisible = false;
   }
 
-  onDialogConfirm() {
-    console.log("Confirmed action!");
-    this.dialogVisible = false;
+  csrFormModel = {
+    issuerCertificateId: '',
+    validFrom: '',
+    validTo: ''
+  };
+
+  selectedFiles: { csrFile?: File} = {};
+
+  onFileSelect(event: Event, type: 'csrFile') {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.selectedFiles[type] = input.files[0];
+    }
   }
 
-  uploadCSR(formData: any) {
-    console.log('Upload CSR:', formData);
-    this.showDialog('CSR and Key uploaded successfully!', 'info');
-  }
+  uploadCSR() {
+    if (!this.selectedFiles.csrFile) {
+      this.showDialog('Please upload CSR.', 'error');
+      return;
+    }
 
-  generateCertificate(formData: any) {
-    console.log('Generate Certificate:', formData);
-    this.showDialog('Certificate generated successfully!', 'info');
-  }
+    const dto = {
+      issuerCertificateId: this.csrFormModel.issuerCertificateId,
+      validFrom: this.csrFormModel.validFrom,
+      validTo: this.csrFormModel.validTo
+    };
 
-  selectCACertificate(selectedCA: SimpleCertificate) {
-    console.log('Selected CA Certificate:', selectedCA);
-    this.showDialog(`CA Certificate "${selectedCA.commonName}" selected.`, 'confirm');
+    const formDataToSend = new FormData();
+    formDataToSend.append('file', this.selectedFiles.csrFile);
+    formDataToSend.append('data', new Blob([JSON.stringify(dto)], { type: 'application/json' }));
+
+    this.certificateService.uploadCSR(formDataToSend).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const extension = ".pem";
+        a.download = `certificate${extension}`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.showDialog('Certificate created and downloaded successfully.');
+      },
+      error: err => this.showDialog('CSR upload failed.', 'error')
+    });
   }
 }

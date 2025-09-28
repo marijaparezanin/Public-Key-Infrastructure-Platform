@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 
 import java.util.Collection;
@@ -25,18 +26,36 @@ public class CertificateController {
         this.certificateService = certificateService;
     }
 
-    @PostMapping()
+    @PostMapping
     public ResponseEntity<CreatedCertificateDTO> createCertificate(@RequestBody CreateCertificateDTO dto) {
         try {
             CreatedCertificateDTO certificate = certificateService.createCertificate(dto);
             return ResponseEntity.ok(certificate);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
-            System.out.println(e.toString());
             return ResponseEntity.badRequest().body(null);
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println(e.toString());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
+    }
+
+    @PostMapping("/ee")
+    public ResponseEntity<byte[]> createEECertificate(@RequestBody CreateEECertificateDTO dto) {
+        try {
+            byte[] keystore = certificateService.createEECertificate(dto);
+            String fileName = "certificate." + (dto.getKeyStoreFormat() == KEYSTOREDOWNLOADFORMAT.PKCS12 ? "p12" : "jks");
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(keystore);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(null);
+        } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(null);
         }
@@ -81,6 +100,7 @@ public class CertificateController {
         try {
             bytes = certificateService.getKeyStoreForDownload(dto);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .build();
         }
@@ -91,5 +111,25 @@ public class CertificateController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(bytes);
+    }
+
+    @PostMapping(value = "/upload-csr", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<byte[]> uploadCsr(
+            @RequestPart("file") MultipartFile csrFile,
+            @RequestPart("data") UploadCsrDTO dto) {
+        try {
+            byte[] certificateBytes = certificateService.createCertificateFromCsr(csrFile, dto);
+            String fileName = "certificate.pem";
+            return ResponseEntity.ok().
+                    header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(certificateBytes);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }
