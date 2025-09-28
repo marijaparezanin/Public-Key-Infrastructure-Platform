@@ -90,3 +90,22 @@ export interface RequestRevokeDTO {
   reason: RevocationReason;
 
 }
+
+export interface CreateCertificateTemplateDto {
+  name: string;
+  issuerCertificateId: string; // UUID string from backend
+  commonNameRegex: string;
+  subjectAlternativeNameRegex?: string;
+  ttlDays: number;
+  keyUsage?: string;          // e.g. "digitalSignature,keyEncipherment"
+  extendedKeyUsage?: string;  // e.g. "serverAuth,clientAuth"
+}
+
+export interface SimpleCertificateTemplateDTO {
+  name: string;
+  commonNameRegex: string;
+  subjectAlternativeNameRegex: string;
+  ttlDays: number;
+  keyUsage: string;
+  extendedKeyUsage: string;
+}

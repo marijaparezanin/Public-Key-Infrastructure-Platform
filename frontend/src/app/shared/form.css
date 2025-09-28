@@ -57,8 +57,8 @@ select:focus{
   display: flex;
   gap: 2rem;
   flex-direction: row;
-  flex-wrap: nowrap;      
-  align-items: stretch;  
+  flex-wrap: nowrap;
+  align-items: stretch;
 }
 
 .combined-form .column {
@@ -68,11 +68,11 @@ select:focus{
 }
 
 .combined-form .column:first-child {
-  flex: 1;      
+  flex: 1;
 }
 
 .combined-form .column:last-child {
-  flex: 1; 
+  flex: 1;
   padding-inline: 2rem;
 }
 
@@ -83,4 +83,23 @@ select:focus{
 
 .no-show{
   display: contents;
+}
+
+
+
+
+button:disabled,
+.form button:disabled {
+  background-color: #ccc;       /* gray out the button */
+  color: #666;                  /* darker text for contrast */
+  cursor: not-allowed;          /* show not-allowed cursor */
+  transform: none;              /* disable hover transform */
+  box-shadow: none;             /* remove shadow effect */
+}
+
+/* Optional: keep hover effect disabled for disabled buttons */
+button:disabled:hover,
+.form button:disabled:hover {
+  background-color: #ccc;
+  transform: none;
 }

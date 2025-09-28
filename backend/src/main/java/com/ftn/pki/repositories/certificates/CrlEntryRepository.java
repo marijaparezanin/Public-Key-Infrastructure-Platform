@@ -11,4 +11,5 @@ public interface CrlEntryRepository extends JpaRepository<CrlEntry, java.util.UU
     List<CrlEntry> findAll();
 
     List<CrlEntry> findByIssuerId(UUID issuerId);
+
 }

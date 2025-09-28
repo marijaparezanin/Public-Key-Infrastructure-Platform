@@ -7,6 +7,7 @@ import com.ftn.pki.models.organizations.Organization;
 import com.ftn.pki.models.users.User;
 import com.ftn.pki.models.users.UserRole;
 import com.ftn.pki.repositories.certificates.CertificateRepository;
+import com.ftn.pki.repositories.certificates.CertificateTemplateRepository;
 import com.ftn.pki.repositories.certificates.CrlEntryRepository;
 import com.ftn.pki.services.organizations.OrganizationService;
 import com.ftn.pki.services.users.UserService;
@@ -48,7 +49,7 @@ public class CertificateService {
     private final OrganizationService organizationService;
 
     @Autowired
-    public CertificateService(CertificateRepository certificateRepository, CrlEntryRepository crlEntryRepository,
+    public CertificateService(CertificateRepository certificateRepository, CertificateTemplateRepository certificateTemplateRepository, CrlEntryRepository crlEntryRepository,
                               AESUtils aesUtils, UserService userService,
                               @Value("${MASTER_KEY}") String base64MasterKey, OrganizationService organizationService) {
         this.certificateRepository = certificateRepository;
@@ -417,6 +418,7 @@ public class CertificateService {
 
         return baos.toByteArray();
     }
+
 
     @Transactional
     public byte[] createCertificateFromCsr(MultipartFile csrFile, UploadCsrDTO dto) throws Exception {

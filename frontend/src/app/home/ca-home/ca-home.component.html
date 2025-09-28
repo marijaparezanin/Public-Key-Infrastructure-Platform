@@ -12,53 +12,21 @@
       View My Certificates
     </button>
     <button [class.active]="activeTab === 'manageTemplates'" (click)="activeTab='manageTemplates'">
-      Manage Templates
+      Create Templates
     </button>
   </div>
 
   <!-- Tab content -->
   <div class="tab-content">
-
     <!-- Issue Certificate Form -->
     <app-create-certification [role]="'ca'" *ngIf="activeTab==='issueCerts'" class="dashbord-column"></app-create-certification>
 
     <!-- View My Certificates Table -->
     <app-all-certifications [role]="'ca'" *ngIf="activeTab==='viewCerts'" class="dashbord-column" ></app-all-certifications>
-    
+
     <!-- Manage Templates Table/Form -->
-    <div *ngIf="activeTab==='manageTemplates'" class="table-container">
-      <table>
-        <thead>
-        <tr>
-          <th>Template Name</th>
-          <th>CA Issuer</th>
-          <th>CN Regex</th>
-          <th>SAN Regex</th>
-          <th>TTL (days)</th>
-          <th>Key Usage</th>
-          <th>Extended Key Usage</th>
-          <th colspan="2">Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr *ngFor="let template of templates">
-          <td>{{template.name}}</td>
-          <td>{{template.caIssuer}}</td>
-          <td>{{template.cnRegex}}</td>
-          <td>{{template.sanRegex}}</td>
-          <td>{{template.ttl}}</td>
-          <td>{{template.keyUsage}}</td>
-          <td>{{template.extendedKeyUsage}}</td>
-          <td>
-            <button class="edit">Edit</button>
-          </td>
-          <td>
-            <button class="delete" (click)="openDeleteDialog(template)">Delete</button>
-          </td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
+    <app-create-certificate-template *ngIf="activeTab==='manageTemplates'" class="dashbord-column" ></app-create-certificate-template>
+
 
   </div>
 </div>
