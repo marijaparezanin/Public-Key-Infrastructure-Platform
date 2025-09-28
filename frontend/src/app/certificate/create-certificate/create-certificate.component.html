@@ -114,7 +114,7 @@
             (ngModelChange)="issuer.control.setErrors(customRequired(issuer.control, 'Select Issuer'));
                            onIssuerChange($event)">
       <option *ngFor="let cert of availableCertificates" [value]="cert.id">
-        {{ cert.commonName }}
+        {{ cert.commonName + ", " + cert.organizationalUnit + ", " + cert.type + ", " + cert.serialNumber}}
       </option>
     </select>
     <div *ngIf="issuer.invalid && (issuer.dirty || issuer.touched)" class="error">
