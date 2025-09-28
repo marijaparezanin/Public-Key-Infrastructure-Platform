@@ -192,8 +192,13 @@
         </div>
       </td>
       <td>
-        <button type="button" (click)="removeExtension(key)">Remove</button>
+        <button type="button"
+                (click)="removeExtension(key)"
+                [disabled]="templateAddedKeys.has(key) && extensionEntries.get(key) !== ''">
+          Remove
+        </button>
       </td>
+
     </tr>
   </table>
 

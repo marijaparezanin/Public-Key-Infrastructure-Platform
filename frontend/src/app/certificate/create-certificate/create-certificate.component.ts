@@ -116,10 +116,16 @@ export class CreateCertificationComponent implements OnInit {
   }
 
   removeExtension(key: string) {
-    // if it was added by template, remove from templateAddedKeys too
+    // Block removal if it's a template-added checkbox extension
+    if (this.templateAddedKeys.has(key) && this.extensionEntries.get(key) !== '') {
+      return; // do nothing
+    }
+
+    // normal removal
     if (this.templateAddedKeys.has(key)) this.templateAddedKeys.delete(key);
     this.deleteMapEntryAndMirror(key);
   }
+
 
   // this is used to prevent selecting the same key twice in the select
   isKeyDisabled(key: string, currentKey: string): boolean {
