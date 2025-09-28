@@ -1,4 +1,4 @@
-<form class="form" (ngSubmit)="submitCertificate(certForm)" #certForm="ngForm" [ngClass]="{'ee-role': role==='ee'}">
+<form class="form" (ngSubmit)="submitCertificate(certForm)" #certForm="ngForm">
 
   <!-- Assigned to organization -->
   <div class="no-show" *ngIf="role==='admin'">
@@ -215,5 +215,7 @@
   *ngIf="showDialog"
   [message]="dialogMessage"
   [type]="dialogType"
-  (close)="onDialogClose()">
+  (close)="onDialogClose()"
+  (confirm)="onDialogConfirm($event)"
+>
 </app-dialog>

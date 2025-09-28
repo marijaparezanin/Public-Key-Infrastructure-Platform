@@ -23,6 +23,12 @@ export interface CreateCertificateDto {
   assignToOrganizationName: string|null;
 }
 
+export interface CreateEECertificateDto extends CreateCertificateDto{
+  alias: string;
+  password: string;
+  keyStoreFormat: KEYSTOREDOWNLOADFORMAT;
+}
+
 export interface CreatedCertificateDto {
   commonName: string;
   surname: string;
@@ -64,6 +70,7 @@ export interface SimpleCertificate {
   revoked: boolean;
   valid: boolean;
   serialNumber: string;
+  downloadable: boolean;
 }
 
 export enum KEYSTOREDOWNLOADFORMAT {

@@ -5,55 +5,54 @@
 
   <!-- Tabs -->
   <div class="tabs">
-    <button [class.active]="activeTab==='uploadGenerate'" (click)="activeTab='uploadGenerate'">Upload / Generate</button>
-    <button [class.active]="activeTab==='selectCA'" (click)="activeTab='selectCA'">Select CA Certificate</button>
-    <button [class.active]="activeTab==='revokeAndDownload'" (click)="activeTab='revokeAndDownload'">Revoke/Download Certificate & Key</button>
+    <button [class.active]="activeTab==='csr'" (click)="activeTab='csr'">Upload CSR</button>
+    <button [class.active]="activeTab==='auto'" (click)="activeTab='auto'">Autogenerate Certificate</button>
+    <button [class.active]="activeTab==='revokeAndDownload'" (click)="activeTab='revokeAndDownload'">My Certificates</button>
   </div>
 
   <!-- Tab content -->
   <div class="tab-content">
 
-    <!-- Combined Upload / Generate Form -->
-    <form *ngIf="activeTab==='uploadGenerate'" class="form combined-form">
+      <!-- CSR Form -->
+      <form *ngIf="activeTab==='csr'" (ngSubmit)="uploadCSR()" #csrForm="ngForm" class="form dashbord-column" >
 
-      <div class="column">
-        <h3>Upload CSR & Key</h3>
         <label>Upload CSR (.pem)</label>
-        <input type="file" accept=".pem">
+        <input type="file" accept=".pem" (change)="onFileSelect($event, 'csrFile')" required />
 
-        <label>Upload Private Key (.key)</label>
-        <input type="file" accept=".key">
+        <!-- Valid From -->
+        <label>Valid From</label>
+        <input type="date" [(ngModel)]="csrFormModel.validFrom" name="validFrom" required />
 
-        <button type="submit">Upload</button>
-      </div>
+        <!-- Valid To -->
+        <label>Valid To</label>
+        <input type="date" [(ngModel)]="csrFormModel.validTo" name="validTo" required />
 
-      <div class="column">
-        <h3>Generate Keys & Certificate</h3>
-        <app-create-certification [role]="'ee'"></app-create-certification>
-      </div>
+        <!-- Issuer -->
+        <label>Issuer</label>
+        <select [(ngModel)]="csrFormModel.issuerCertificateId" name="issuerCertificateId" required>
+          <option *ngFor="let cert of caCertificates" [value]="cert.id">
+            {{ cert.commonName }}
+          </option>
+        </select>
 
-    </form>
+        <button type="submit">Upload CSR</button>
+      </form>
 
-    <!-- Select CA Certificate Form -->
-    <form *ngIf="activeTab==='selectCA'" class="form">
-      <label>Select CA Certificate</label>
-      <select>
-        <option *ngFor="let ca of caCertificates">{{ca.commonName}}</option>
-      </select>
+    <!-- Autogenerate Form -->
+    <app-create-certification *ngIf="activeTab==='auto'" [role]="'ee'" class="dashbord-column"></app-create-certification>
 
-      <button type="submit">Select</button>
-    </form>
+
 
     <!-- Revoke and Download Certificates -->
     <app-all-certifications *ngIf="activeTab==='revokeAndDownload'" [role]="'ee'" class="dashbord-column"></app-all-certifications>
 
-  </div>
+    </div>
+
 </div>
 
 <app-dialog
   *ngIf="dialogVisible"
   [message]="dialogMessage"
   [type]="dialogType"
-  (close)="onDialogClose()"
-  (confirm)="onDialogConfirm()">
+  (close)="onDialogClose()">
 </app-dialog>
