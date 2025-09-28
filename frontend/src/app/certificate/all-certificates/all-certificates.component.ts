@@ -1,9 +1,10 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import {Certificate, KEYSTOREDOWNLOADFORMAT, SimpleCertificate} from '../model/certificate.model';
-import { DialogComponent } from '../../shared/dialog/dialog.component';
-import { CertificateService } from '../service/certificate.service';
+import {Component, Input, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormsModule} from '@angular/forms';
+import {KEYSTOREDOWNLOADFORMAT, SimpleCertificate} from '../model/certificate.model';
+import {DialogComponent} from '../../shared/dialog/dialog.component';
+import {CertificateService} from '../service/certificate.service';
+import {RevocationReason} from '../model/revocation-reason.model';
 
 @Component({
   selector: 'app-all-certifications',
@@ -18,9 +19,11 @@ export class AllCertificationsComponent implements OnInit {
 
   showDialog = false;
   dialogMessage = '';
-  dialogType: 'info' | 'error' | 'confirm' | 'download' = 'info';
+  dialogType: 'info' | 'error' | 'confirm' | 'download' | 'revoke' = 'info';
   selectedCert: SimpleCertificate | null = null;
   downloadOptions: string[] = [".jks", ".p12"];
+  revocationOptions: string[] = Object.values(RevocationReason);
+  selectedRevocationReason: RevocationReason = RevocationReason.UNSPECIFIED;
 
   constructor(
     private certificateService: CertificateService
@@ -34,8 +37,9 @@ export class AllCertificationsComponent implements OnInit {
 
   revokeCertificate(cert: SimpleCertificate) {
     this.selectedCert = cert;
-    this.dialogMessage = `Are you sure you want to revoke certificate ${cert.serialNumber}?`;
-    this.dialogType = 'confirm';
+    this.selectedRevocationReason = RevocationReason.UNSPECIFIED;
+    this.dialogMessage = `Select reason for revoking certificate ${cert.serialNumber}:`;
+    this.dialogType = 'revoke';
     this.showDialog = true;
   }
 
@@ -46,7 +50,7 @@ export class AllCertificationsComponent implements OnInit {
     this.showDialog = true;
   }
 
-  onConfirm(data?: {extension?: string, alias?: string, password?: string}) {
+  onConfirm(data?: {extension?: string, alias?: string, password?: string, reason?: string}) {
     if (this.selectedCert) {
       if (this.dialogType === 'download' && data) {
         let format: KEYSTOREDOWNLOADFORMAT = KEYSTOREDOWNLOADFORMAT.JKS;
@@ -75,10 +79,25 @@ export class AllCertificationsComponent implements OnInit {
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
           });
-      } else if (this.dialogType === 'confirm') {
-        console.log('Revoking:', this.selectedCert);
-        alert(`Revoked certificate ${this.selectedCert.serialNumber}!`);
-      }
+          }else if (this.dialogType === 'revoke' && data) {
+            const reason = data.reason as RevocationReason; // cast string to enum
+            this.certificateService.revokeCertificate({
+              certificateId: this.selectedCert.id,
+              reason: reason
+            }).subscribe({
+              next: () => {
+                // refresh the entire list after successful revoke
+                this.certificateService.getAllCertificates().subscribe(certs => {
+                  this.certificates = certs;
+                });
+              },
+              error: err => {
+                console.error('Failed to revoke certificate:', err);
+                alert('Failed to revoke certificate.');
+              }
+          });
+        }
+
     }
     this.showDialog = false;
   }

@@ -59,6 +59,9 @@ public class Certificate {
     @Column(nullable = false)
     private boolean revoked = false;
 
+    @Column(nullable = true)
+    private RevocationReason revocationReason;
+
     public X509Certificate getX509Certificate() throws Exception {
         return (X509Certificate) java.security.cert.CertificateFactory
                 .getInstance("X.509")

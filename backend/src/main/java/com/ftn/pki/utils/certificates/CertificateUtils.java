@@ -19,11 +19,13 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.util.encoders.Hex;
 import org.springframework.stereotype.Component;
 
 import java.math.BigInteger;
 import java.security.PublicKey;
 import java.security.Security;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.*;
@@ -37,6 +39,7 @@ public class CertificateUtils {
 
     public static X509Certificate generateCertificate(Subject subject,
                                                       Issuer issuer,
+                                                      String issuerCertificateId,
                                                       Date startDate,
                                                       Date endDate,
                                                       String serialNumber,
@@ -70,6 +73,29 @@ public class CertificateUtils {
                 );
             }
 
+            // Always add CRL Distribution Point
+            String crlUrl = "https://localhost:8081/api/crl/" + issuerCertificateId + "/latest";
+
+            DistributionPoint[] points = new DistributionPoint[] {
+                    new DistributionPoint(
+                            new DistributionPointName(
+                                    new GeneralNames(
+                                            new GeneralName(GeneralName.uniformResourceIdentifier, crlUrl)
+                                    )
+                            ),
+                            null,
+                            null
+                    )
+            };
+
+
+            certGen.addExtension(
+                    Extension.cRLDistributionPoints,
+                    false,
+                    new CRLDistPoint(points)
+            );
+
+            // the optional extensions
             addExtensions(certGen, extensions, issuer.getPublicKey(), subject.getPublicKey());
 
             X509CertificateHolder certHolder = certGen.build(contentSigner);

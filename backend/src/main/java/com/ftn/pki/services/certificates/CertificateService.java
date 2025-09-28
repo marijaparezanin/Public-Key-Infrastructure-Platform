@@ -5,15 +5,18 @@ import com.ftn.pki.models.certificates.Certificate;
 import com.ftn.pki.models.certificates.CertificateType;
 import com.ftn.pki.models.certificates.Issuer;
 import com.ftn.pki.models.certificates.Subject;
+import com.ftn.pki.models.certificates.CrlEntry;
 import com.ftn.pki.models.organizations.Organization;
 import com.ftn.pki.models.users.User;
 import com.ftn.pki.models.users.UserRole;
 import com.ftn.pki.repositories.certificates.CertificateRepository;
+import com.ftn.pki.repositories.certificates.CrlEntryRepository;
 import com.ftn.pki.services.organizations.OrganizationService;
 import com.ftn.pki.services.users.UserService;
 import com.ftn.pki.utils.certificates.CertificateUtils;
 import com.ftn.pki.utils.cryptography.AESUtils;
 import com.ftn.pki.utils.cryptography.RSAUtils;
+import jakarta.transaction.Transactional;
 import org.apache.tomcat.util.http.fileupload.ByteArrayOutputStream;
 import org.bouncycastle.asn1.pkcs.Attribute;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
@@ -42,22 +45,25 @@ import static org.keycloak.common.util.PemUtils.pemToDer;
 public class CertificateService {
 
     private final CertificateRepository certificateRepository;
+    private final CrlEntryRepository crlEntryRepository;
     private final AESUtils aesUtils;
     private final UserService userService;
     private final SecretKey masterKey;
     private final OrganizationService organizationService;
 
     @Autowired
-    public CertificateService(CertificateRepository certificateRepository,
+    public CertificateService(CertificateRepository certificateRepository, CrlEntryRepository crlEntryRepository,
                               AESUtils aesUtils, UserService userService,
                               @Value("${MASTER_KEY}") String base64MasterKey, OrganizationService organizationService) {
         this.certificateRepository = certificateRepository;
+        this.crlEntryRepository = crlEntryRepository;
         this.aesUtils = aesUtils;
         this.userService = userService;
         this.masterKey = AESUtils.secretKeyFromBase64(base64MasterKey);
         this.organizationService = organizationService;
     }
 
+    @Transactional
     public CreatedCertificateDTO createCertificate(CreateCertificateDTO dto) throws Exception {
         User currentUser = userService.getLoggedUser();
         Organization organization = null;
@@ -134,6 +140,7 @@ public class CertificateService {
         X509Certificate x509Certificate = CertificateUtils.generateCertificate(
                 subject,
                 issuer,
+                dto.getIssuerCertificateId(),
                 dto.getStartDate(),
                 dto.getEndDate(),
                 new BigInteger(64, new SecureRandom()).toString(), // Serial number
@@ -243,7 +250,7 @@ public class CertificateService {
         return AESUtils.secretKeyFromBase64(dekBase64);
     }
 
-    private PrivateKey loadAndDecryptPrivateKey(Certificate certEntity) throws Exception {
+    public PrivateKey loadAndDecryptPrivateKey(Certificate certEntity) throws Exception {
         byte[] encryptedPrivateKeyBytes = certEntity.getPrivateKeyEncrypted();
         String iv = certEntity.getIv();
 
@@ -299,8 +306,9 @@ public class CertificateService {
         return dtos;
     }
 
+    @Transactional
     public void revokeCertificate(RequestRevokeDTO dto) {
-        Certificate cert = certificateRepository.findById(UUID.fromString(dto.getCertificateId()))
+        Certificate cert = certificateRepository.findById(dto.getCertificateId())
                 .orElseThrow(() -> new IllegalArgumentException("Certificate not found"));
 
         User currentUser = userService.getLoggedUser();
@@ -321,14 +329,31 @@ public class CertificateService {
         }
 
         cert.setRevoked(true);
+        cert.setRevocationReason(dto.getReason());
+        addToCrl(cert);
         certificateRepository.save(cert);
+
 
         for (Certificate childCert : certificateRepository.findAllByIssuerId(cert.getId())) {
             if (!childCert.isRevoked()) {
-                revokeCertificate(new RequestRevokeDTO(childCert.getId().toString(), dto.getReason()));
+                revokeCertificate(new RequestRevokeDTO(childCert.getId(), dto.getReason()));
             }
         }
     }
+
+    private void addToCrl(Certificate cert) {
+        CrlEntry crlEntry = new CrlEntry();
+        crlEntry.setCertificateSerialNumber(cert.getSerialNumber());
+        crlEntry.setRevocationDate(new Date());
+        crlEntry.setReason(cert.getRevocationReason());
+        if (cert.getType() == CertificateType.ROOT){
+            crlEntry.setIssuerId(cert.getId());
+        } else {
+            crlEntry.setIssuerId(cert.getIssuer().getId());
+        }
+        crlEntryRepository.save(crlEntry);
+    }
+
 
     public byte[] getKeyStoreForDownload(DownloadRequestDTO dto) throws Exception {
         Certificate cert = certificateRepository.findById(dto.getCertificateId())
@@ -393,6 +418,7 @@ public class CertificateService {
         X509Certificate x509Certificate = CertificateUtils.generateCertificate(
                 subject,
                 new Issuer(loadAndDecryptPrivateKey(issuerCertEntity), issuerCertEntity.getX509Certificate().getPublicKey(), CertificateUtils.getSubjectX500Name(issuerCertEntity.getX509Certificate())),
+                issuerCertEntity.getId().toString(),
                 dto.getValidFrom(),
                 dto.getValidTo(),
                 new BigInteger(64, new SecureRandom()).toString(),
