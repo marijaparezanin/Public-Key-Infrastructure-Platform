@@ -14,15 +14,13 @@
   <select [(ngModel)]="templateFormModel.issuerCertificateId" name="issuerCertificateId"
           #issuer="ngModel" required
           (ngModelChange)="issuer.control.setErrors(customRequired(issuer.control, 'Select Issuer'))">
-    <option *ngFor="let cert of availableIssuers" [value]="cert.id">
-      {{ cert.commonName }}
-    </option>
+    <option *ngFor="let cert of availableIssuers" [value]="cert.id">{{ cert.commonName }}</option>
   </select>
   <div *ngIf="issuer.invalid && (issuer.dirty || issuer.touched)" class="error">
     *Select Issuer
   </div>
 
-  <!-- Common Name Regex -->
+  <!-- CN Regex -->
   <label>Common Name (CN) Regex</label>
   <input type="text" [(ngModel)]="templateFormModel.commonNameRegex" name="commonNameRegex"
          placeholder="e.g. .*\\.ftn\\.com" #cnRegex="ngModel" required
@@ -45,21 +43,32 @@
     *Enter TTL in days
   </div>
 
-  <!-- Key Usage -->
-  <label>Key Usage (CSV)</label>
-  <input type="text" [(ngModel)]="templateFormModel.keyUsage" name="keyUsage"
-         placeholder="e.g. digitalSignature,keyEncipherment" />
+  <!-- Key Usage Checkboxes -->
+  <label>Key Usage</label>
+  <div>
+    <label *ngFor="let option of keyUsageOptions">
+      <input type="checkbox"
+             [checked]="isChecked('keyUsage', option)"
+             (change)="toggleCheckbox('keyUsage', option)" />
+      {{ option }}
+    </label>
+  </div>
 
-  <!-- Extended Key Usage -->
-  <label>Extended Key Usage (CSV)</label>
-  <input type="text" [(ngModel)]="templateFormModel.extendedKeyUsage" name="extendedKeyUsage"
-         placeholder="e.g. serverAuth,clientAuth" />
+  <!-- Extended Key Usage Checkboxes -->
+  <label>Extended Key Usage</label>
+  <div>
+    <label *ngFor="let option of extendedKeyUsageOptions">
+      <input type="checkbox"
+             [checked]="isChecked('extendedKeyUsage', option)"
+             (change)="toggleCheckbox('extendedKeyUsage', option)" />
+      {{ option }}
+    </label>
+  </div>
 
   <!-- Submit -->
   <button type="submit">Create Template</button>
 </form>
 
-<!-- Dialog -->
 <app-dialog
   *ngIf="showDialog"
   [message]="dialogMessage"

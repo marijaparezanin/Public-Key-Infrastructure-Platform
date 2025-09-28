@@ -11,6 +11,7 @@ import { DialogComponent } from "../../shared/dialog/dialog.component";
 import { CertificateService } from '../service/certificate.service';
 import { Organization } from '../model/organization.model';
 import { OrganizationService } from '../service/organziation.service';
+import {EXTENDED_KEY_USAGES, KEY_USAGES} from '../model/certificate-extensions.constants';
 
 @Component({
   selector: 'app-create-certification',
@@ -61,6 +62,8 @@ export class CreateCertificationComponent implements OnInit {
 
   // explicit order array so we preserve insertion order and avoid keyvalue sorting issues
   extensionOrder: string[] = [];
+  keyUsageOptions = KEY_USAGES;
+  extendedKeyUsageOptions = EXTENDED_KEY_USAGES
 
   // which extension keys were added by the currently applied template
   templateAddedKeys: Set<string> = new Set<string>();
@@ -289,4 +292,33 @@ export class CreateCertificationComponent implements OnInit {
   trackByExtensionKey(index: number, key: string) {
     return key;
   }
+
+  toggleCheckbox(key: string, option: string) {
+    // If this key comes from a template, prevent unchecking
+    if (this.templateAddedKeys.has(key)) return;
+
+    const currentValue = this.extensionEntries.get(key) || '';
+    let values = currentValue.split(',').map(v => v.trim()).filter(v => v.length);
+
+    if (values.includes(option)) {
+      values = values.filter(v => v !== option);
+    } else {
+      values.push(option);
+    }
+    this.setMapEntryAndMirror(key, values.join(','));
+  }
+
+// helper for checkboxes: check if option is selected
+  isChecked(key: string, option: string): boolean {
+    const currentValue = this.extensionEntries.get(key) || '';
+    const values = currentValue.split(',').map(v => v.trim());
+    return values.includes(option);
+  }
+
+// helper to check if checkbox should be disabled
+  isCheckboxDisabled(key: string, option: string): boolean {
+    // disable all template-provided keys to prevent editing
+    return this.templateAddedKeys.has(key);
+  }
+
 }

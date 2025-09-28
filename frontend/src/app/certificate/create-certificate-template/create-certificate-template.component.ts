@@ -1,10 +1,10 @@
-import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormsModule, NgForm } from '@angular/forms';
+import { FormsModule, NgForm, AbstractControl } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { DialogComponent } from "../../shared/dialog/dialog.component";
 import { CertificateService } from '../service/certificate.service';
-import {CreateCertificateTemplateDto, SimpleCertificate} from '../model/certificate.model';
-
+import { CreateCertificateTemplateDto, SimpleCertificate } from '../model/certificate.model';
+import {KEY_USAGES, EXTENDED_KEY_USAGES} from '../model/certificate-extensions.constants';
 
 @Component({
   selector: 'app-create-certificate-template',
@@ -27,19 +27,36 @@ export class CreateCertificateTemplateComponent implements OnInit {
 
   availableIssuers: SimpleCertificate[] = [];
 
+  keyUsageOptions = KEY_USAGES;
+  extendedKeyUsageOptions = EXTENDED_KEY_USAGES;
+
   showDialog: boolean = false;
   dialogMessage: string = '';
   dialogType: 'info' | 'error' = 'error';
 
-
-  constructor(
-    private certificateService: CertificateService,
-  ) {}
+  constructor(private certificateService: CertificateService) {}
 
   ngOnInit() {
     this.certificateService.getApplicableCA().subscribe(cers => {
       this.availableIssuers = cers;
     });
+  }
+
+  // Toggle value in CSV string
+  toggleCheckbox(key: 'keyUsage' | 'extendedKeyUsage', option: string) {
+    const currentValue = this.templateFormModel[key] || '';
+    let values = currentValue.split(',').map(v => v.trim()).filter(v => v.length);
+    if (values.includes(option)) {
+      values = values.filter(v => v !== option);
+    } else {
+      values.push(option);
+    }
+    this.templateFormModel[key] = values.join(',');
+  }
+
+  isChecked(key: 'keyUsage' | 'extendedKeyUsage', option: string): boolean {
+    const currentValue = this.templateFormModel[key] || '';
+    return currentValue.split(',').map(v => v.trim()).includes(option);
   }
 
   customRequired(control: AbstractControl, message: string) {
@@ -55,9 +72,7 @@ export class CreateCertificateTemplateComponent implements OnInit {
 
     console.log('Creating template:', this.templateFormModel);
     this.certificateService.createTemplate(this.templateFormModel).subscribe({
-      next: () => {
-        this.showDialogInfo('Template created successfully.');
-      },
+      next: () => this.showDialogInfo('Template created successfully.'),
       error: err => {
         console.error('Failed to create template:', err);
         this.showDialogError('Failed to create template. Please try again.');

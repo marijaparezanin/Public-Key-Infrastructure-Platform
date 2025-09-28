@@ -1,6 +1,6 @@
 <form class="form" (ngSubmit)="submitCertificate(certForm)" #certForm="ngForm" [ngClass]="{'ee-role': role==='ee'}">
 
-  <!--Asigned to organization-->
+  <!-- Assigned to organization -->
   <div class="no-show" *ngIf="role==='admin'">
     <label>Assign to organization</label>
     <select [(ngModel)]="certificateForm.assignToOrganizationName" name="assignToOrganizationName"
@@ -79,7 +79,7 @@
 
   <!-- Certificate Type (only for admin/CA) -->
   <div *ngIf="role !== 'ee'" class="no-show">
-    <label >Certificate Type</label>
+    <label>Certificate Type</label>
     <select [(ngModel)]="certificateForm.type" name="type" #certType="ngModel" required
             (ngModelChange)="certType.control.setErrors(customRequired(certType.control, 'Select Certificate Type'))">
       <option *ngIf="role ==='admin'">ROOT</option>
@@ -146,7 +146,6 @@
 
     <tr *ngFor="let key of extensionOrder; let i = index; trackBy: trackByExtensionKey">
       <td>
-        <!-- select shows the current key (not two-way bound to avoid replacing item identity) -->
         <select [ngModel]="key" (ngModelChange)="onExtensionKeyChange(i, $event)" name="extKey{{i}}">
           <option *ngFor="let k of supportedExtensions" [value]="k" [disabled]="isKeyDisabled(k, key)">
             {{ k }}
@@ -154,17 +153,42 @@
         </select>
       </td>
       <td>
-        <input type="text"
-               [(ngModel)]="extensionEntriesObject[key]"
-               (ngModelChange)="setExtensionValue(key, $event)"
-               name="extValue{{i}}"
-               placeholder="Value"
-               required
-               #extValue="ngModel"
-               (ngModelChange)="extValue.control.setErrors(customRequired(extValue.control, 'Enter Value'))" />
+        <!-- Key Usage Checkboxes -->
+        <div *ngIf="key === 'keyusage'">
+          <label *ngFor="let option of keyUsageOptions">
+            <input type="checkbox"
+                   [checked]="isChecked(key, option)"
+                   [disabled]="isCheckboxDisabled(key, option)"
+                   (change)="toggleCheckbox(key, option)" />
+            {{ option }}
+          </label>
+        </div>
 
-        <div *ngIf="extValue.invalid && (extValue.dirty || extValue.touched)" class="error">
-          *Enter Value
+        <!-- Extended Key Usage Checkboxes -->
+        <div *ngIf="key === 'extendedkeyusage'">
+          <label *ngFor="let option of extendedKeyUsageOptions">
+            <input type="checkbox"
+                   [checked]="isChecked(key, option)"
+                   [disabled]="isCheckboxDisabled(key, option)"
+                   (change)="toggleCheckbox(key, option)" />
+            {{ option }}
+          </label>
+        </div>
+
+
+        <!-- Other extensions as text input -->
+        <div *ngIf="key !== 'keyusage' && key !== 'extendedkeyusage'">
+          <input type="text"
+                 [(ngModel)]="extensionEntriesObject[key]"
+                 (ngModelChange)="setExtensionValue(key, $event)"
+                 name="extValue{{i}}"
+                 placeholder="Value"
+                 required
+                 #extValue="ngModel"
+                 (ngModelChange)="extValue.control.setErrors(customRequired(extValue.control, 'Enter Value'))" />
+          <div *ngIf="extValue.invalid && (extValue.dirty || extValue.touched)" class="error">
+            *Enter Value
+          </div>
         </div>
       </td>
       <td>
@@ -172,7 +196,6 @@
       </td>
     </tr>
   </table>
-
 
   <button type="button" (click)="addExtension()" [disabled]="extensionEntries.size >= supportedExtensions.length">
     Add Extension
