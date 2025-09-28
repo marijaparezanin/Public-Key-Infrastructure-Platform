@@ -46,6 +46,7 @@ export class CertificateService {
   isTemplateNameTaken(name: string): Observable<boolean> {
     return this.http.get<boolean>(`${this.apiUrl}/templates/${name}`);
   }
+
   createEECertificate(dto: CreateEECertificateDto): Observable<Blob> {
     return this.http.post(`${this.apiUrl}/ee`, dto, { responseType: 'blob' });
   }

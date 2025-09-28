@@ -26,10 +26,12 @@ export class CreateCertificationComponent implements OnInit {
 
   showDialog: boolean = false;
   dialogMessage: string = '';
-  dialogType: 'info' | 'error' | 'confirm' | 'download' = 'error';
   availableTemplates: SimpleCertificateTemplateDTO[] = [];
   selectedTemplate: SimpleCertificateTemplateDTO | null = null;
   selectedTemplateName: string | null = null;
+
+  dialogType: 'info' | 'error' | 'confirm' | 'download' = 'error';
+
 
   certificateForm: CreateCertificateDto = {
     type: null,
@@ -278,6 +280,18 @@ export class CreateCertificationComponent implements OnInit {
         }
       });
     }
+
+    console.log('Issuing certificate:', this.certificateForm);
+    this.certificateService.createCertificate(this.certificateForm).subscribe({
+      next: () => {
+        this.showDialogInfo('Certificate created successfully.');
+      },
+      error: err => {
+        console.error('Failed to create certificate:', err);
+        this.showDialogError('Failed to create certificate. Please try again.');
+      }
+    });
+
   }
 
   showDialogError(message: string) {
@@ -303,6 +317,8 @@ export class CreateCertificationComponent implements OnInit {
   }
 
   protected readonly Object = Object;
+
+
 
   onDialogConfirm(data?: {extension?: string, alias?: string, password?: string, reason?: string}) {
     if (this.role === 'ee' && data) {
