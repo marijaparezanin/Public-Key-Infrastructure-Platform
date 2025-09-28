@@ -17,8 +17,8 @@
   <!-- Common Name -->
   <label>Owner Common Name (CN)</label>
   <input type="text" [(ngModel)]="certificateForm.commonName" name="commonName" placeholder="Common Name"
-    #commonName="ngModel" required
-    (ngModelChange)="commonName.control.setErrors(customRequired(commonName.control, 'Enter Common Name Here'))" />
+         #commonName="ngModel" required
+         (ngModelChange)="commonName.control.setErrors(customRequired(commonName.control, 'Enter Common Name Here'))" />
   <div *ngIf="commonName.invalid && (commonName.dirty || commonName.touched)" class="error">
     *Enter Common Name Here
   </div>
@@ -26,8 +26,8 @@
   <!-- Surname -->
   <label>Surname</label>
   <input type="text" [(ngModel)]="certificateForm.surname" name="surname" placeholder="Surname"
-    #surname="ngModel" required
-    (ngModelChange)="surname.control.setErrors(customRequired(surname.control, 'Enter Surname Here'))" />
+         #surname="ngModel" required
+         (ngModelChange)="surname.control.setErrors(customRequired(surname.control, 'Enter Surname Here'))" />
   <div *ngIf="surname.invalid && (surname.dirty || surname.touched)" class="error">
     *Enter Surname Here
   </div>
@@ -35,8 +35,8 @@
   <!-- Given Name -->
   <label>Given Name</label>
   <input type="text" [(ngModel)]="certificateForm.givenName" name="givenName" placeholder="Given Name"
-    #givenName="ngModel" required
-    (ngModelChange)="givenName.control.setErrors(customRequired(givenName.control, 'Enter Given Name Here'))" />
+         #givenName="ngModel" required
+         (ngModelChange)="givenName.control.setErrors(customRequired(givenName.control, 'Enter Given Name Here'))" />
   <div *ngIf="givenName.invalid && (givenName.dirty || givenName.touched)" class="error">
     *Enter Given Name Here
   </div>
@@ -44,8 +44,8 @@
   <!-- Organization -->
   <label>Organization (O)</label>
   <input type="text" [(ngModel)]="certificateForm.organization" name="organization" placeholder="Organization"
-    #organization="ngModel" required
-    (ngModelChange)="organization.control.setErrors(customRequired(organization.control, 'Enter Organization Here'))" />
+         #organization="ngModel" required
+         (ngModelChange)="organization.control.setErrors(customRequired(organization.control, 'Enter Organization Here'))" />
   <div *ngIf="organization.invalid && (organization.dirty || organization.touched)" class="error">
     *Enter Organization Here
   </div>
@@ -53,8 +53,8 @@
   <!-- Organizational Unit -->
   <label>Organizational Unit (OU)</label>
   <input type="text" [(ngModel)]="certificateForm.organizationalUnit" name="organizationalUnit" placeholder="OU"
-    #orgUnit="ngModel" required
-    (ngModelChange)="orgUnit.control.setErrors(customRequired(orgUnit.control, 'Enter Organizational Unit Here'))" />
+         #orgUnit="ngModel" required
+         (ngModelChange)="orgUnit.control.setErrors(customRequired(orgUnit.control, 'Enter Organizational Unit Here'))" />
   <div *ngIf="orgUnit.invalid && (orgUnit.dirty || orgUnit.touched)" class="error">
     *Enter Organizational Unit Here
   </div>
@@ -62,8 +62,8 @@
   <!-- Country -->
   <label>Country (C)</label>
   <input type="text" [(ngModel)]="certificateForm.country" name="country" placeholder="Country"
-    #country="ngModel" required
-    (ngModelChange)="country.control.setErrors(customRequired(country.control, 'Enter Country Here'))" />
+         #country="ngModel" required
+         (ngModelChange)="country.control.setErrors(customRequired(country.control, 'Enter Country Here'))" />
   <div *ngIf="country.invalid && (country.dirty || country.touched)" class="error">
     *Enter Country Here
   </div>
@@ -71,8 +71,8 @@
   <!-- Email -->
   <label>Email</label>
   <input type="email" [(ngModel)]="certificateForm.email" name="email" placeholder="Email"
-    #email="ngModel" required
-    (ngModelChange)="email.control.setErrors(customRequired(email.control, 'Enter Email Here'))" />
+         #email="ngModel" required
+         (ngModelChange)="email.control.setErrors(customRequired(email.control, 'Enter Email Here'))" />
   <div *ngIf="email.invalid && (email.dirty || email.touched)" class="error">
     *Enter Email Here
   </div>
@@ -94,14 +94,14 @@
   <!-- Start / End Dates -->
   <label>Start Date</label>
   <input type="date" [(ngModel)]="certificateForm.startDate" name="startDate" #startDate="ngModel" required
-    (ngModelChange)="startDate.control.setErrors(customRequired(startDate.control, 'Select Start Date'))" />
+         (ngModelChange)="startDate.control.setErrors(customRequired(startDate.control, 'Select Start Date'))" />
   <div *ngIf="startDate.invalid && (startDate.dirty || startDate.touched)" class="error">
     *Select Start Date
   </div>
 
   <label>End Date</label>
   <input type="date" [(ngModel)]="certificateForm.endDate" name="endDate" #endDate="ngModel" required
-    (ngModelChange)="endDate.control.setErrors(customRequired(endDate.control, 'Select End Date'))" />
+         (ngModelChange)="endDate.control.setErrors(customRequired(endDate.control, 'Select End Date'))" />
   <div *ngIf="endDate.invalid && (endDate.dirty || endDate.touched)" class="error">
     *Select End Date
   </div>
@@ -109,11 +109,10 @@
   <!-- Issuer -->
   <div *ngIf="certificateForm.type?.toString()?.toLocaleUpperCase() !== 'ROOT'" class="no-show">
     <label>Issuer</label>
-    <select [(ngModel)]="certificateForm.issuerCertificateId"
-            name="issuerCertificateId"
+    <select [(ngModel)]="certificateForm.issuerCertificateId" name="issuerCertificateId"
             #issuer="ngModel"
-            (ngModelChange)="onIssuerChange($event); issuer.control.setErrors(customRequired(issuer.control, 'Select Issuer'))">
-      <option value="">-- Choose Issuer --</option>
+            (ngModelChange)="issuer.control.setErrors(customRequired(issuer.control, 'Select Issuer'));
+                           onIssuerChange($event)">
       <option *ngFor="let cert of availableCertificates" [value]="cert.id">
         {{ cert.commonName }}
       </option>
@@ -124,51 +123,56 @@
   </div>
 
   <!-- Template -->
-  <div *ngIf="templatesForIssuer.length > 0" class="no-show">
+  <div *ngIf="availableTemplates.length > 0">
     <label>Template</label>
-    <select [(ngModel)]="selectedTemplateId"
-            name="templateId"
-            #template="ngModel"
-            (ngModelChange)="template.control.setErrors(customRequired(template.control, 'Select Template'))">
-      <option value="">-- Choose Template --</option>
-      <option *ngFor="let tmpl of templatesForIssuer" [value]="tmpl.name">
+    <select [(ngModel)]="selectedTemplateName" name="templateName"
+            (ngModelChange)="onTemplateChange($event)">
+      <option [ngValue]="null">-- None --</option>
+      <option *ngFor="let tmpl of availableTemplates" [value]="tmpl.name">
         {{ tmpl.name }}
       </option>
     </select>
-    <div *ngIf="template.invalid && (template.dirty || template.touched)" class="error">
-      *Select Template
-    </div>
+    <button type="button" (click)="onTemplateChange(null)" style="margin-left:8px">Remove template</button>
   </div>
-
 
   <!-- Extensions -->
   <h3>Extensions</h3>
   <table>
-    <tr *ngIf="extensionEntries.size>0">
+    <tr *ngIf="extensionOrder.length > 0">
       <th>Key</th>
       <th>Value</th>
       <th></th>
     </tr>
-    <tr *ngFor="let ext of extensionEntries | keyvalue; let i = index">
+
+    <tr *ngFor="let key of extensionOrder; let i = index; trackBy: trackByExtensionKey">
       <td>
-        <select [(ngModel)]="ext.key" name="extKey{{i}}">
-          <option *ngFor="let key of supportedExtensions" [value]="key" [disabled]="isKeyDisabled(key, ext.key)">
-            {{key}}
+        <!-- select shows the current key (not two-way bound to avoid replacing item identity) -->
+        <select [ngModel]="key" (ngModelChange)="onExtensionKeyChange(i, $event)" name="extKey{{i}}">
+          <option *ngFor="let k of supportedExtensions" [value]="k" [disabled]="isKeyDisabled(k, key)">
+            {{ k }}
           </option>
         </select>
       </td>
       <td>
-        <input type="text" [ngModel]="ext.value" (ngModelChange)="extensionEntries.set(ext.key, $event)" name="extValue{{i}}" placeholder="Value" required #extValue="ngModel" (ngModelChange)="extValue.control.setErrors(customRequired(extValue.control, 'Enter Value'))" />
+        <input type="text"
+               [(ngModel)]="extensionEntriesObject[key]"
+               (ngModelChange)="setExtensionValue(key, $event)"
+               name="extValue{{i}}"
+               placeholder="Value"
+               required
+               #extValue="ngModel"
+               (ngModelChange)="extValue.control.setErrors(customRequired(extValue.control, 'Enter Value'))" />
+
         <div *ngIf="extValue.invalid && (extValue.dirty || extValue.touched)" class="error">
           *Enter Value
         </div>
       </td>
       <td>
-        <button type="button" (click)="removeExtension(ext.key)">Remove</button>
+        <button type="button" (click)="removeExtension(key)">Remove</button>
       </td>
     </tr>
-
   </table>
+
 
   <button type="button" (click)="addExtension()" [disabled]="extensionEntries.size >= supportedExtensions.length">
     Add Extension
