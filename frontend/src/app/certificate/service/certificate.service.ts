@@ -38,4 +38,9 @@ export class CertificateService {
   createEECertificate(dto: CreateEECertificateDto): Observable<Blob> {
     return this.http.post(`${this.apiUrl}/ee`, dto, { responseType: 'blob' });
   }
+
+  uploadCSR(formDataToSend: FormData): Observable<Blob> {
+    return this.http.post(`${this.apiUrl}/upload-csr`, formDataToSend, { responseType: 'blob' });
+
+  }
 }
