@@ -5,7 +5,7 @@ import {environment} from '../../../environments/environment';
 import {
   Certificate,
   CreateCertificateDto, CreateCertificateTemplateDto,
-  CreatedCertificateDto,
+  CreatedCertificateDto, CreateEECertificateDto,
   DownloadRequestDTO, RequestRevokeDTO,
   SimpleCertificate, SimpleCertificateTemplateDTO
 } from '../../certificate/model/certificate.model';
@@ -46,5 +46,12 @@ export class CertificateService {
   isTemplateNameTaken(name: string): Observable<boolean> {
     return this.http.get<boolean>(`${this.apiUrl}/templates/${name}`);
   }
+  createEECertificate(dto: CreateEECertificateDto): Observable<Blob> {
+    return this.http.post(`${this.apiUrl}/ee`, dto, { responseType: 'blob' });
+  }
 
+  uploadCSR(formDataToSend: FormData): Observable<Blob> {
+    return this.http.post(`${this.apiUrl}/upload-csr`, formDataToSend, { responseType: 'blob' });
+
+  }
 }

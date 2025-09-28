@@ -31,4 +31,5 @@ public class SimpleCertificateDTO {
     private boolean revoked;
     private boolean valid;
     private String serialNumber;
+    private boolean downloadable;
 }
