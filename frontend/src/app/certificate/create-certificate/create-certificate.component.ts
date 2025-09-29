@@ -12,7 +12,12 @@ import { DialogComponent } from "../../shared/dialog/dialog.component";
 import { CertificateService } from '../service/certificate.service';
 import { Organization } from '../model/organization.model';
 import { OrganizationService } from '../service/organziation.service';
-import {EXTENDED_KEY_USAGES, KEY_USAGES} from '../model/certificate-extensions.constants';
+import {
+  EXTENDED_KEY_USAGES,
+  KEY_USAGES,
+  SUPPORATED_EXTENSIONS_OIDS,
+  SUPPORTED_EXTENSIONS
+} from '../model/certificate-extensions.constants';
 
 @Component({
   selector: 'app-create-certification',
@@ -49,15 +54,7 @@ export class CreateCertificationComponent implements OnInit {
     assignToOrganizationName: null
   };
 
-  supportedExtensions = [
-    'keyusage',
-    'extendedkeyusage',
-    'subjectaltname',
-    'keycertsign',
-    'digitalsignature',
-    'crldistributionpoints',
-    'authorityinfoaccess'
-  ];
+  supportedExtensions = SUPPORTED_EXTENSIONS
 
   // source-of-truth store + object mirror for stable binding
   extensionEntries: Map<string, string> = new Map<string, string>();
@@ -253,8 +250,9 @@ export class CreateCertificationComponent implements OnInit {
     // (I intentionally do not change your certificate creation logic other than making sure ext Map is accurate)
     this.certificateForm.extensions = {};
     this.extensionEntries.forEach((value, key) => {
-      this.certificateForm.extensions[key] = value;
+      this.certificateForm.extensions[SUPPORATED_EXTENSIONS_OIDS[key]] = value;
     });
+
 
     form.form.markAllAsTouched();
     if (!form.valid) {
@@ -268,7 +266,6 @@ export class CreateCertificationComponent implements OnInit {
       this.certificateForm.type = CertificateType['END_ENTITY'];
       this.showDialogDownload();
     } else {
-      this.certificateForm.extensions
       console.log('Issuing certificate:', this.certificateForm);
       this.certificateService.createCertificate(this.certificateForm).subscribe({
         next: () => {

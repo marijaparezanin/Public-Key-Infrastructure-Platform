@@ -117,13 +117,17 @@ public class CertificateUtils {
             Map.of(
             // Key Usage
             "2.5.29.15", (builder, value) -> {
-                String strValue = (String) value;
+                String strValue = ((String) value).toLowerCase().trim();
                 int usage = 0;
-                if (strValue.contains("digitalSignature")) usage |= KeyUsage.digitalSignature;
-                if (strValue.contains("keyEncipherment")) usage |= KeyUsage.keyEncipherment;
-                if (strValue.contains("dataEncipherment")) usage |= KeyUsage.dataEncipherment;
-                if (strValue.contains("keyCertSign")) usage |= KeyUsage.keyCertSign;
-                if (strValue.contains("cRLSign")) usage |= KeyUsage.cRLSign;
+                if (strValue.contains("digitalsignature")) usage |= KeyUsage.digitalSignature;
+                if (strValue.contains("nonrepudiation")) usage |= KeyUsage.nonRepudiation;
+                if (strValue.contains("keyencipherment")) usage |= KeyUsage.keyEncipherment;
+                if (strValue.contains("dataencipherment")) usage |= KeyUsage.dataEncipherment;
+                if (strValue.contains("keyagreement")) usage |= KeyUsage.keyAgreement;
+                if (strValue.contains("keycertsign")) usage |= KeyUsage.keyCertSign;
+                if (strValue.contains("crlsign")) usage |= KeyUsage.cRLSign;
+                if (strValue.contains("encipheronly")) usage |= KeyUsage.encipherOnly;
+                if (strValue.contains("decipheronly")) usage |= KeyUsage.decipherOnly;
 
                 try {
                     builder.addExtension(
@@ -143,10 +147,13 @@ public class CertificateUtils {
                     KeyPurposeId[] purposes = Arrays.stream(strValue.split(","))
                             .map(String::trim)
                             .map(s -> switch (s) {
-                                case "serverAuth" -> KeyPurposeId.id_kp_serverAuth;
-                                case "clientAuth" -> KeyPurposeId.id_kp_clientAuth;
-                                case "emailProtection" -> KeyPurposeId.id_kp_emailProtection;
-                                default -> null;
+                                case "serverAuth"     -> KeyPurposeId.id_kp_serverAuth;
+                                case "clientAuth"     -> KeyPurposeId.id_kp_clientAuth;
+                                case "codeSigning"    -> KeyPurposeId.id_kp_codeSigning;
+                                case "emailProtection"-> KeyPurposeId.id_kp_emailProtection;
+                                case "timeStamping"   -> KeyPurposeId.id_kp_timeStamping;
+                                case "OCSPSigning"    -> KeyPurposeId.id_kp_OCSPSigning;
+                                default               -> null;
                             })
                             .filter(Objects::nonNull)
                             .toArray(KeyPurposeId[]::new);
@@ -166,11 +173,7 @@ public class CertificateUtils {
                 String strValue = (String) value;
                 GeneralName[] names = Arrays.stream(strValue.split(","))
                         .map(String::trim)
-                        .map(n -> {
-                            if (n.startsWith("DNS:")) return new GeneralName(GeneralName.dNSName, n.substring(4));
-                            if (n.startsWith("email:")) return new GeneralName(GeneralName.rfc822Name, n.substring(6));
-                            return new GeneralName(GeneralName.otherName, n);
-                        })
+                        .map(CertificateUtils::parseSANEntry)
                         .toArray(GeneralName[]::new);
 
                 GeneralNames subjectAltNames = new GeneralNames(names);
@@ -183,115 +186,45 @@ public class CertificateUtils {
                 } catch (CertIOException e) {
                     throw new RuntimeException(e);
                 }
-            },
-
-            // CRL Distribution Points
-            "2.5.29.31", (builder, value) -> {
-                try {
-                    String strValue = (String) value;
-                    DistributionPoint[] points = Arrays.stream(strValue.split(","))
-                            .map(String::trim)
-                            .map(uri -> {
-                                GeneralName gn = new GeneralName(GeneralName.uniformResourceIdentifier, uri);
-                                GeneralNames gns = new GeneralNames(gn);
-                                return new DistributionPoint(new DistributionPointName(gns), null, null);
-                            })
-                            .toArray(DistributionPoint[]::new);
-
-                    builder.addExtension(
-                            new ASN1ObjectIdentifier("2.5.29.31"),
-                            false,
-                            new CRLDistPoint(points)
-                    );
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            },
-
-            // Authority Information Access
-            "1.3.6.1.5.5.7.1.1", (builder, value) -> {
-                try {
-                    String strValue = (String) value;
-                    List<AccessDescription> accessList = new ArrayList<>();
-                    for (String entry : strValue.split(",")) {
-                        String[] parts = entry.split(":", 2);
-                        if (parts.length == 2) {
-                            if (parts[0].equalsIgnoreCase("ocsp")) {
-                                accessList.add(new AccessDescription(
-                                        AccessDescription.id_ad_ocsp,
-                                        new GeneralName(GeneralName.uniformResourceIdentifier, parts[1])
-                                ));
-                            } else if (parts[0].equalsIgnoreCase("caIssuers")) {
-                                accessList.add(new AccessDescription(
-                                        AccessDescription.id_ad_caIssuers,
-                                        new GeneralName(GeneralName.uniformResourceIdentifier, parts[1])
-                                ));
-                            }
-                        }
-                    }
-
-                    AuthorityInformationAccess aia = new AuthorityInformationAccess(
-                            accessList.toArray(new AccessDescription[0])
-                    );
-
-                    builder.addExtension(
-                            new ASN1ObjectIdentifier("1.3.6.1.5.5.7.1.1"),
-                            false,
-                            aia
-                    );
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            },
-            // Certificate Policies
-            "2.5.29.32", (builder, value) -> {
-                try {
-                    String strValue = (String) value;
-                    PolicyInformation[] policies = Arrays.stream(strValue.split(","))
-                            .map(String::trim)
-                            .map(oid -> new PolicyInformation(new ASN1ObjectIdentifier(oid)))
-                            .toArray(PolicyInformation[]::new);
-
-                    builder.addExtension(
-                            new ASN1ObjectIdentifier("2.5.29.32"),
-                            false,
-                            new CertificatePolicies(policies)
-                    );
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            },
-
-            // Subject Key Identifier
-            "2.5.29.14", (builder, value) -> {
-                try {
-                    PublicKey key = (PublicKey) value;
-                    SubjectKeyIdentifier ski = new JcaX509ExtensionUtils().createSubjectKeyIdentifier(key);
-                    builder.addExtension(
-                            new ASN1ObjectIdentifier("2.5.29.14"),
-                            false,
-                            ski
-                    );
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            },
-
-            // Authority Key Identifier
-            "2.5.29.35", (builder, value) -> {
-                try {
-                    PublicKey key = (PublicKey) value;
-                    AuthorityKeyIdentifier aki = new JcaX509ExtensionUtils().createAuthorityKeyIdentifier(key);
-                    builder.addExtension(
-                            new ASN1ObjectIdentifier("2.5.29.35"),
-                            false,
-                            aki
-                    );
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
             }
     );
+
+    private static GeneralName parseSANEntry(String input) {
+        String trimmed = input.trim();
+
+        // Format "DNS:example.com"
+        if (trimmed.contains(":") && !trimmed.matches(".*\\d+\\s*=.*")) {
+            String[] parts = trimmed.split(":", 2);
+            String type = parts[0].toUpperCase();
+            String value = parts[1];
+            return switch (type) {
+                case "DNS"    -> new GeneralName(GeneralName.dNSName, value);
+                case "IP"     -> new GeneralName(GeneralName.iPAddress, value);
+                case "EMAIL"  -> new GeneralName(GeneralName.rfc822Name, value);
+                case "URI"    -> new GeneralName(GeneralName.uniformResourceIdentifier, value);
+                case "DIRNAME"-> new GeneralName(GeneralName.directoryName, value);
+                case "OTHERNAME" -> new GeneralName(GeneralName.otherName, value);
+                default -> throw new IllegalArgumentException("Nepoznat SAN tip: " + type);
+            };
+        }
+
+        // Format "DNS.1 = example.com"
+        if (trimmed.contains("=")) {
+            String[] parts = trimmed.split("=", 2);
+            String left = parts[0].trim().toUpperCase();
+            String value = parts[1].trim();
+
+            if (left.startsWith("DNS")) return new GeneralName(GeneralName.dNSName, value);
+            if (left.startsWith("IP")) return new GeneralName(GeneralName.iPAddress, value);
+            if (left.startsWith("EMAIL")) return new GeneralName(GeneralName.rfc822Name, value);
+            if (left.startsWith("URI")) return new GeneralName(GeneralName.uniformResourceIdentifier, value);
+            if (left.startsWith("DIRNAME")) return new GeneralName(GeneralName.directoryName, value);
+            if (left.startsWith("OTHERNAME")) return new GeneralName(GeneralName.otherName, value);
+        }
+
+        throw new IllegalArgumentException("Unsupported SAN format: " + input);
+    }
+
 
 
     public static void addExtensions(X509v3CertificateBuilder builder, Map<String, String> extensions, PublicKey issuerPublicKey, PublicKey subjectPublicKey) {
@@ -302,17 +235,12 @@ public class CertificateUtils {
             String value = entry.getValue();
 
             BiConsumer<X509v3CertificateBuilder, Object> handler = EXTENSION_HANDLERS.get(name);
-            if (name.equals("2.5.29.14")) { // SKI
-                EXTENSION_HANDLERS.get(name).accept(builder, subjectPublicKey);
-            } else if (name.equals("2.5.29.35")) { // AKI
-                EXTENSION_HANDLERS.get(name).accept(builder, issuerPublicKey);
+
+            handler = EXTENSION_HANDLERS.get(name);
+            if (handler != null) {
+                handler.accept(builder, value);
             } else {
-                handler = EXTENSION_HANDLERS.get(name);
-                if (handler != null) {
-                    handler.accept(builder, value);
-                } else {
-                    System.out.println("Unknown extension: " + name);
-                }
+                System.out.println("Unknown extension: " + name);
             }
         }
     }
@@ -363,7 +291,7 @@ public class CertificateUtils {
             for (ASN1ObjectIdentifier oid : extensions.getExtensionOIDs()) {
                 Extension ext = extensions.getExtension(oid);
 
-                String name = oid.getId();
+                String name = ext.getExtnId().getId();
                 String value;
                 try {
                     value = ext.getParsedValue().toString();
