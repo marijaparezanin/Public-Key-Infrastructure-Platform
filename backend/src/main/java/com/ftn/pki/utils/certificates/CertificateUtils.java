@@ -6,6 +6,7 @@ import com.ftn.pki.models.certificates.Subject;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.pkcs.Attribute;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.*;
@@ -13,19 +14,17 @@ import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
-import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.bouncycastle.util.encoders.Hex;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.springframework.stereotype.Component;
 
 import java.math.BigInteger;
 import java.security.PublicKey;
 import java.security.Security;
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.*;
@@ -204,7 +203,7 @@ public class CertificateUtils {
                 case "URI"    -> new GeneralName(GeneralName.uniformResourceIdentifier, value);
                 case "DIRNAME"-> new GeneralName(GeneralName.directoryName, value);
                 case "OTHERNAME" -> new GeneralName(GeneralName.otherName, value);
-                default -> throw new IllegalArgumentException("Nepoznat SAN tip: " + type);
+                default -> throw new IllegalArgumentException("Unknown SAN type: " + type);
             };
         }
 
@@ -277,33 +276,87 @@ public class CertificateUtils {
         }
     }
 
-    public static Map<String, String> extractExtensionsFromAttributes(Attribute[] attributes) {
+    public static Map<String, String> extractExtensionsFromCSR(PKCS10CertificationRequest csr) {
         Map<String, String> extensionMap = new HashMap<>();
-
-        if (attributes == null || attributes.length == 0) {
-            return extensionMap;
-        }
+        if (csr == null) return extensionMap;
 
         try {
+            Attribute[] attributes = csr.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
+            if (attributes == null || attributes.length == 0) return extensionMap;
+
             ASN1Encodable attrValue = attributes[0].getAttrValues().getObjectAt(0);
             Extensions extensions = Extensions.getInstance(attrValue);
 
             for (ASN1ObjectIdentifier oid : extensions.getExtensionOIDs()) {
                 Extension ext = extensions.getExtension(oid);
-
                 String name = ext.getExtnId().getId();
                 String value;
-                try {
-                    value = ext.getParsedValue().toString();
-                } catch (Exception e) {
-                    value = Base64.getEncoder().encodeToString(ext.getExtnValue().getOctets());
-                }
 
-                extensionMap.put(name, value);
+                try {
+                    switch (name) {
+                        case "2.5.29.15": // Key Usage
+                            KeyUsage ku = KeyUsage.getInstance(ext.getParsedValue());
+                            List<String> usages = new ArrayList<>();
+                            if ((ku.getBytes()[0] & KeyUsage.digitalSignature) != 0) usages.add("digitalSignature");
+                            if ((ku.getBytes()[0] & KeyUsage.nonRepudiation) != 0) usages.add("nonRepudiation");
+                            if ((ku.getBytes()[0] & KeyUsage.keyEncipherment) != 0) usages.add("keyEncipherment");
+                            if ((ku.getBytes()[0] & KeyUsage.dataEncipherment) != 0) usages.add("dataEncipherment");
+                            if ((ku.getBytes()[0] & KeyUsage.keyAgreement) != 0) usages.add("keyAgreement");
+                            if ((ku.getBytes()[0] & KeyUsage.keyCertSign) != 0) usages.add("keyCertSign");
+                            if ((ku.getBytes()[0] & KeyUsage.cRLSign) != 0) usages.add("cRLSign");
+                            if ((ku.getBytes()[0] & KeyUsage.encipherOnly) != 0) usages.add("encipherOnly");
+                            if ((ku.getBytes()[0] & KeyUsage.decipherOnly) != 0) usages.add("decipherOnly");
+                            value = String.join(",", usages);
+                            break;
+
+                        case "2.5.29.37": // Extended Key Usage
+                            ExtendedKeyUsage eku = ExtendedKeyUsage.getInstance(ext.getParsedValue());
+                            List<String> purposes = new ArrayList<>();
+                            for (KeyPurposeId kp : eku.getUsages()) {
+                                if (KeyPurposeId.id_kp_serverAuth.equals(kp)) purposes.add("serverAuth");
+                                else if (KeyPurposeId.id_kp_clientAuth.equals(kp)) purposes.add("clientAuth");
+                                else if (KeyPurposeId.id_kp_codeSigning.equals(kp)) purposes.add("codeSigning");
+                                else if (KeyPurposeId.id_kp_emailProtection.equals(kp)) purposes.add("emailProtection");
+                                else if (KeyPurposeId.id_kp_timeStamping.equals(kp)) purposes.add("timeStamping");
+                                else if (KeyPurposeId.id_kp_OCSPSigning.equals(kp)) purposes.add("OCSPSigning");
+                            }
+                            value = String.join(",", purposes);
+                            break;
+
+                        case "2.5.29.17": // Subject Alternative Name
+                            GeneralNames gns = GeneralNames.getInstance(ext.getParsedValue());
+                            List<String> names = new ArrayList<>();
+                            for (GeneralName gn : gns.getNames()) {
+                                switch (gn.getTagNo()) {
+                                    case GeneralName.dNSName -> names.add("DNS:" + gn.getName().toString());
+                                    case GeneralName.iPAddress -> names.add("IP:" + gn.getName().toString());
+                                    case GeneralName.rfc822Name -> names.add("EMAIL:" + gn.getName().toString());
+                                    case GeneralName.uniformResourceIdentifier -> names.add("URI:" + gn.getName().toString());
+                                    case GeneralName.directoryName -> names.add("DIRNAME:" + gn.getName().toString());
+                                    case GeneralName.otherName -> names.add("OTHERNAME:" + gn.getName().toString());
+                                    default -> names.add(gn.getName().toString());
+                                }
+                            }
+                            value = String.join(",", names);
+                            break;
+
+                        default: // fallback
+                            try {
+                                value = ext.getParsedValue().toString();
+                            } catch (Exception e) {
+                                value = Base64.getEncoder().encodeToString(ext.getExtnValue().getOctets());
+                            }
+                    }
+
+                    extensionMap.put(name, value);
+
+                } catch (Exception e) {
+                    System.out.println("Failed to parse extension " + name + ": " + e.getMessage());
+                }
             }
 
         } catch (Exception e) {
-            throw new RuntimeException("Failed to extract extensions from CSR attributes", e);
+            throw new RuntimeException("Failed to extract extensions from CSR", e);
         }
 
         return extensionMap;

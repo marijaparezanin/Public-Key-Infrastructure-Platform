@@ -310,7 +310,6 @@ export class CreateCertificationComponent implements OnInit {
       this.certificateForm.type = CertificateType['END_ENTITY'];
       const dto = {
         ...this.certificateForm,
-        extensions: Object.fromEntries(this.extensionEntries),
         alias: data.alias || '',
         password: data.password || '',
         keyStoreFormat: data.extension === '.jks' ? KEYSTOREDOWNLOADFORMAT.JKS : KEYSTOREDOWNLOADFORMAT.PKCS12

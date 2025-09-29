@@ -433,8 +433,7 @@ public class CertificateService {
 
         X500Name subjectX500 = csr.getSubject();
 
-        Attribute[] attributes = csr.getAttributes(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest);
-        Map<String, String> extensions = CertificateUtils.extractExtensionsFromAttributes(attributes);
+        Map<String, String> extensions = CertificateUtils.extractExtensionsFromCSR(csr);
 
         Certificate issuerCertEntity = certificateRepository.findById(UUID.fromString(dto.getIssuerCertificateId()))
                 .orElseThrow(() -> new IllegalArgumentException("Issuer certificate not found"));
