@@ -6,6 +6,7 @@ import com.ftn.pki.security.JwtUserFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -37,6 +38,20 @@ public class BasicSecurityConfig {
         http.oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtRoleConverter)));
 
         http.authorizeHttpRequests((requests) -> requests
+                .requestMatchers(HttpMethod.GET, "/api/crl/*/latest").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/users/create-ca").hasRole("admin")
+                .requestMatchers(HttpMethod.GET, "/api/organizations").hasRole("admin")
+                .requestMatchers(HttpMethod.POST, "/api/certificates/templates").hasRole("ca_user")
+                .requestMatchers(HttpMethod.GET, "/api/certificates/templates/ca/*").hasAnyRole("admin","ee_user","ca_user")
+                .requestMatchers(HttpMethod.GET, "/api/certificates/templates/*").hasRole("ca_user")
+                .requestMatchers(HttpMethod.POST, "/api/certificates").hasAnyRole("ca_user","admin")
+                .requestMatchers(HttpMethod.POST, "/api/certificates/ee").hasRole("ee_user")
+                .requestMatchers(HttpMethod.GET, "/api/certificates/applicable-ca").hasAnyRole("ca_user","ee_user","admin")
+                .requestMatchers(HttpMethod.GET, "/api/certificates/all").hasAnyRole("ca_user","ee_user","admin")
+                .requestMatchers(HttpMethod.PUT, "/api/certificates/revoke").hasAnyRole("ca_user","ee_user","admin")
+                .requestMatchers(HttpMethod.POST, "/api/certificates/download").hasAnyRole("ca_user","ee_user","admin")
+                .requestMatchers(HttpMethod.POST, "/api/certificates/upload-csr").hasRole("ee_user")
+
                 .anyRequest().authenticated()
         );
 

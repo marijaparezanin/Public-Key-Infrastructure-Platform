@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +28,7 @@ public class CertificateController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ca_user','admin')")
     public ResponseEntity<CreatedCertificateDTO> createCertificate(@RequestBody CreateCertificateDTO dto) {
         try {
             CreatedCertificateDTO certificate = certificateService.createCertificate(dto);
@@ -42,6 +44,7 @@ public class CertificateController {
     }
 
     @PostMapping("/ee")
+    @PreAuthorize("hasRole('ee_user')")
     public ResponseEntity<byte[]> createEECertificate(@RequestBody CreateEECertificateDTO dto) {
         try {
             byte[] keystore = certificateService.createEECertificate(dto);
@@ -63,6 +66,7 @@ public class CertificateController {
 
     @GetMapping("/applicable-ca")
     @Transactional(readOnly = true)
+    @PreAuthorize("hasAnyRole('ca_user','ee_user','admin')")
     public ResponseEntity<Collection<SimpleCertificateDTO>> getAllCAForOrganization() {
         try {
             Collection<SimpleCertificateDTO> caCertificates = certificateService.findAllCAForMyOrganization();
@@ -75,11 +79,13 @@ public class CertificateController {
     }
 
     @GetMapping("/all")
+    @PreAuthorize("hasAnyRole('ca_user','ee_user','admin')")
     public ResponseEntity<Collection<SimpleCertificateDTO>> getAll(){
         return ResponseEntity.ok(certificateService.findAllSimple());
     }
 
     @PutMapping("/revoke")
+    @PreAuthorize("hasAnyRole('ca_user','ee_user','admin')")
     public ResponseEntity<Void> revokeCertificate(@RequestBody RequestRevokeDTO dto){
         try {
             certificateService.revokeCertificate(dto);
@@ -95,6 +101,7 @@ public class CertificateController {
     }
 
     @PostMapping("/download")
+    @PreAuthorize("hasAnyRole('ca_user','ee_user','admin')")
     public ResponseEntity<byte[]> downloadCertificate(@RequestBody DownloadRequestDTO dto) {
         byte[] bytes = null;
         try {
@@ -115,6 +122,7 @@ public class CertificateController {
 
 
     @PostMapping(value = "/upload-csr", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ee_user')")
     public ResponseEntity<byte[]> uploadCsr(
             @RequestPart("file") MultipartFile csrFile,
             @RequestPart("data") UploadCsrDTO dto) {

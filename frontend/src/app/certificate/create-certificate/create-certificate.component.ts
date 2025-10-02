@@ -82,9 +82,11 @@ export class CreateCertificationComponent implements OnInit {
     this.certificateService.getApplicableCA().subscribe(cers => {
       this.availableCertificates = cers;
     });
-    this.organizationService.getAll().subscribe(orgs => {
-      this.allOrganizations = orgs;
-    })
+    if (this.role === 'admin') {
+      this.organizationService.getAll().subscribe(orgs => {
+        this.allOrganizations = orgs;
+      })
+    }
   }
 
   /* -------------------- Utility sync functions -------------------- */
