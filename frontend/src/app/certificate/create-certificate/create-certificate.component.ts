@@ -202,7 +202,7 @@ export class CreateCertificationComponent implements OnInit {
     const start = new Date(this.certificateForm.startDate);
     const end = new Date(this.certificateForm.endDate);
 
-    return start < this.issuerValidFrom || end > this.issuerValidTo || end < start;
+    return start <= this.issuerValidFrom || end >= this.issuerValidTo || end < start;
   }
 
   isStartAfterEnd(): boolean {
