@@ -30,7 +30,7 @@
   <!-- CN Regex -->
   <label>Common Name (CN) Regex</label>
   <input type="text" [(ngModel)]="templateFormModel.commonNameRegex" name="commonNameRegex"
-         placeholder="e.g. .*\\.ftn\\.com" #cnRegex="ngModel" required
+         placeholder="e.g. ^.+\.ftn\.com$" #cnRegex="ngModel" required
          (ngModelChange)="cnRegex.control.setErrors(customRequired(cnRegex.control, 'Enter CN Regex'))" />
   <div *ngIf="cnRegex.invalid && (cnRegex.dirty || cnRegex.touched)" class="error">
     *Enter CN Regex
@@ -39,7 +39,7 @@
   <!-- SAN Regex -->
   <label>Subject Alternative Names (SAN) Regex</label>
   <input type="text" [(ngModel)]="templateFormModel.subjectAlternativeNameRegex" name="sanRegex"
-         placeholder="Optional regex for SANs" />
+         placeholder="Optional, e.g. ^DNS:.+\.ftn\.com$ />
 
   <!-- TTL -->
   <label>Time To Live (days)</label>
