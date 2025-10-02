@@ -82,9 +82,11 @@ export class CreateCertificationComponent implements OnInit {
     this.certificateService.getApplicableCA().subscribe(cers => {
       this.availableCertificates = cers;
     });
-    this.organizationService.getAll().subscribe(orgs => {
-      this.allOrganizations = orgs;
-    })
+    if (this.role === 'admin') {
+      this.organizationService.getAll().subscribe(orgs => {
+        this.allOrganizations = orgs;
+      })
+    }
   }
 
   /* -------------------- Utility sync functions -------------------- */
@@ -200,7 +202,7 @@ export class CreateCertificationComponent implements OnInit {
     const start = new Date(this.certificateForm.startDate);
     const end = new Date(this.certificateForm.endDate);
 
-    return start < this.issuerValidFrom || end > this.issuerValidTo || end < start;
+    return start <= this.issuerValidFrom || end >= this.issuerValidTo || end < start;
   }
 
   isStartAfterEnd(): boolean {
@@ -399,7 +401,6 @@ export class CreateCertificationComponent implements OnInit {
       this.certificateForm.type = CertificateType['END_ENTITY'];
       this.showDialogDownload();
     } else {
-      console.log('Issuing certificate:', this.certificateForm);
       this.certificateService.createCertificate(this.certificateForm).subscribe({
         next: () => {
           this.showDialogInfo('Certificate created successfully.');

@@ -4,6 +4,7 @@ import com.ftn.pki.dtos.users.CreateCAUserDTO;
 import com.ftn.pki.services.users.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,6 +23,7 @@ public class UserController {
     }
 
     @PostMapping("/create-ca")
+    @PreAuthorize("hasRole('admin')")
     public ResponseEntity<String> createCAUser(@RequestBody CreateCAUserDTO dto) {
         userService.createCAUser(dto);
         return ResponseEntity.ok().build();

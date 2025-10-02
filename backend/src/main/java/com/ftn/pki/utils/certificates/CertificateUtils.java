@@ -26,6 +26,8 @@ import java.math.BigInteger;
 import java.security.PublicKey;
 import java.security.Security;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -262,7 +264,7 @@ public class CertificateUtils {
         try {
             certificate.checkValidity();
             return true;
-        } catch (CertificateException e) {
+        } catch (CertificateExpiredException | CertificateNotYetValidException e) {
             return false;
         }
     }

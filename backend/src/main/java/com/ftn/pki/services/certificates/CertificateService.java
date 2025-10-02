@@ -200,9 +200,15 @@ public class CertificateService {
         certificateEntity.setRevoked(false);
         certificateEntity.setUser(currentUser);
 
-        if (!isCertificateValid(certificateEntity)) {
-            throw new IllegalArgumentException("Generated certificate is not valid");
+        if (issuerCertEntity!=null && !isCertificateValid(certificateEntity.getIssuer())) {
+            throw new IllegalArgumentException("Issuer certificate is not valid");
         }
+
+        if (!CertificateUtils.isValidSignature(x509Certificate,
+                certificateEntity.getIssuer() != null ? certificateEntity.getIssuer().getX509Certificate() : x509Certificate)) {
+            throw new IllegalArgumentException("Certificate signature is not valid");
+        }
+
         return certificateEntity;
     }
 

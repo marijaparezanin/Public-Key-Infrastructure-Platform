@@ -5,6 +5,7 @@ import com.ftn.pki.dtos.certificates.SimpleCertificateTemplateDTO;
 import com.ftn.pki.services.certificates.CertificateTemplateService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +22,8 @@ public class CertificateTemplateController {
         this.certificateTemplateService = certificateTemplateService;
     }
 
-    @PostMapping()
+    @PostMapping
+    @PreAuthorize("hasRole('ca_user')")
     public ResponseEntity<Void> createCertificateTemplate(@RequestBody CreateCertificateTemplateDTO dto) {
         try {
             certificateTemplateService.createTemplate(dto);
@@ -35,6 +37,7 @@ public class CertificateTemplateController {
     }
 
     @GetMapping("/ca/{id}")
+    @PreAuthorize("hasAnyRole('admin','ee_user','ca_user')")
     @Transactional(readOnly = true)
     public ResponseEntity<Collection<SimpleCertificateTemplateDTO>> getAllTemplatesForCA(@PathVariable String id) {
         try {
@@ -48,6 +51,7 @@ public class CertificateTemplateController {
     }
 
     @GetMapping("/{name}")
+    @PreAuthorize("hasRole('ca_user')")
     public ResponseEntity<Boolean> getTemplateNameExists(@PathVariable String name) {
         try {
             boolean exists = certificateTemplateService.findByName(name);
