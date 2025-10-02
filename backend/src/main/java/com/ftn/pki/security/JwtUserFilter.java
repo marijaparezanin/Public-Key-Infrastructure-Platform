@@ -67,7 +67,6 @@ public class JwtUserFilter extends OncePerRequestFilter {
             }
         } catch (Exception e) {
             System.out.println("Error in JWT user filter: " + e.getMessage());
-            throw new IllegalArgumentException("Unable to save user", e);
         }
 
         filterChain.doFilter(request, response);

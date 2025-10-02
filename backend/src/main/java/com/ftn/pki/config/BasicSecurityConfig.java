@@ -38,7 +38,7 @@ public class BasicSecurityConfig {
         http.oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtRoleConverter)));
 
         http.authorizeHttpRequests((requests) -> requests
-                .requestMatchers(HttpMethod.GET, "/api/crl/*/latest").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/crl/{id}/latest").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/users/create-ca").hasRole("admin")
                 .requestMatchers(HttpMethod.GET, "/api/organizations").hasRole("admin")
                 .requestMatchers(HttpMethod.POST, "/api/certificates/templates").hasRole("ca_user")
