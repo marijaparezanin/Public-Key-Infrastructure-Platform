@@ -399,7 +399,6 @@ export class CreateCertificationComponent implements OnInit {
       this.certificateForm.type = CertificateType['END_ENTITY'];
       this.showDialogDownload();
     } else {
-      console.log('Issuing certificate:', this.certificateForm);
       this.certificateService.createCertificate(this.certificateForm).subscribe({
         next: () => {
           this.showDialogInfo('Certificate created successfully.');
