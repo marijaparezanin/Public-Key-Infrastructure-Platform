@@ -36,6 +36,8 @@ export class CreateCertificationComponent implements OnInit {
   selectedTemplateName: string | null = null;
 
   dialogType: 'info' | 'error' | 'confirm' | 'download' = 'error';
+  issuerValidFrom: Date | null = null;
+  issuerValidTo: Date | null = null;
 
 
   certificateForm: CreateCertificateDto = {
@@ -178,7 +180,26 @@ export class CreateCertificationComponent implements OnInit {
       this.templateAddedKeys.forEach(k => this.deleteMapEntryAndMirror(k));
       this.templateAddedKeys.clear();
     });
+
+    const issuer = this.availableCertificates.find(c => c.id === issuerId);
+    if (issuer) {
+      this.issuerValidFrom = issuer.startDate; // adapt field names
+      this.issuerValidTo = issuer.endDate;
+    }
   }
+
+  isDateRangeInvalid(): boolean {
+    if (!this.issuerValidFrom || !this.issuerValidTo
+      || !this.certificateForm.startDate || !this.certificateForm.endDate) {
+      return false;
+    }
+
+    const start = new Date(this.certificateForm.startDate);
+    const end = new Date(this.certificateForm.endDate);
+
+    return start < this.issuerValidFrom || end > this.issuerValidTo || end < start;
+  }
+
 
   onTemplateChange(templateName: string | null) {
     // remove previously template-added keys always

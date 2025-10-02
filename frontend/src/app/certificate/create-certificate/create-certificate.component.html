@@ -93,18 +93,33 @@
 
   <!-- Start / End Dates -->
   <label>Start Date</label>
-  <input type="date" [(ngModel)]="certificateForm.startDate" name="startDate" #startDate="ngModel" required
+  <input type="date"
+         [(ngModel)]="certificateForm.startDate"
+         name="startDate"
+         #startDate="ngModel"
+         required
          (ngModelChange)="startDate.control.setErrors(customRequired(startDate.control, 'Select Start Date'))" />
   <div *ngIf="startDate.invalid && (startDate.dirty || startDate.touched)" class="error">
     *Select Start Date
   </div>
 
   <label>End Date</label>
-  <input type="date" [(ngModel)]="certificateForm.endDate" name="endDate" #endDate="ngModel" required
+  <input type="date"
+         [(ngModel)]="certificateForm.endDate"
+         name="endDate"
+         #endDate="ngModel"
+         required
          (ngModelChange)="endDate.control.setErrors(customRequired(endDate.control, 'Select End Date'))" />
   <div *ngIf="endDate.invalid && (endDate.dirty || endDate.touched)" class="error">
     *Select End Date
   </div>
+
+  <!-- Extra validation message for issuer validity -->
+  <div *ngIf="isDateRangeInvalid()" class="error">
+    *Start and End Date must be within issuer's validity period
+    ({{ issuerValidFrom | date:'yyyy-MM-dd' }} → {{ issuerValidTo | date:'yyyy-MM-dd' }})
+  </div>
+
 
   <!-- Issuer -->
   <div *ngIf="certificateForm.type?.toString()?.toLocaleUpperCase() !== 'ROOT'" class="no-show">
