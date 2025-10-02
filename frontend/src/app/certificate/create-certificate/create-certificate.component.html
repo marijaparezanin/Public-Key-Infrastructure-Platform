@@ -51,6 +51,9 @@
   <div *ngIf="commonName.invalid && (commonName.dirty || commonName.touched)" class="error">
     *Enter Common Name Here
   </div>
+  <div *ngIf="cnErrorMessage" class="error">
+    {{ cnErrorMessage }}
+  </div>
 
   <!-- Surname -->
   <label>Surname</label>
@@ -215,6 +218,12 @@
           <div *ngIf="extValue.invalid && (extValue.dirty || extValue.touched)" class="error">
             *Enter Value
           </div>
+
+          <!-- SAN regex error -->
+          <div *ngIf="key === 'subjectaltname' && sanErrorMessage" class="error">
+            {{ sanErrorMessage }}
+          </div>
+
         </div>
       </td>
       <td>

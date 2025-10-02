@@ -38,6 +38,9 @@ export class CreateCertificationComponent implements OnInit {
   dialogType: 'info' | 'error' | 'confirm' | 'download' = 'error';
   issuerValidFrom: Date | null = null;
   issuerValidTo: Date | null = null;
+  cnErrorMessage: string | null = null;
+  sanErrorMessage: string | null = null;
+
 
 
   certificateForm: CreateCertificateDto = {
@@ -228,6 +231,42 @@ export class CreateCertificationComponent implements OnInit {
     return diffDays > this.selectedTemplate.ttlDays;
   }
 
+  validateCN() {
+    this.cnErrorMessage = null;
+    if (this.selectedTemplate?.commonNameRegex) {
+      try {
+        const regex = new RegExp(this.selectedTemplate.commonNameRegex);
+        if (!regex.test(this.certificateForm.commonName || '')) {
+          this.cnErrorMessage = `Common Name must match: ${this.selectedTemplate.commonNameRegex}`;
+          return false;
+        }
+        return true;
+      } catch {
+        this.cnErrorMessage = 'Invalid regex in template.';
+        return true
+      }
+    }
+    return true
+  }
+
+  validateSAN() {
+    this.sanErrorMessage = null;
+    if (this.selectedTemplate?.subjectAlternativeNameRegex) {
+      try {
+        const regex = new RegExp(this.selectedTemplate.subjectAlternativeNameRegex);
+        const san = this.extensionEntries.get('subjectaltname') || '';
+        if (!regex.test(san)) {
+          this.sanErrorMessage = `Subject Alternative Name must match: ${this.selectedTemplate.subjectAlternativeNameRegex}`;
+          return false
+        }
+      } catch {
+        this.sanErrorMessage = 'Invalid SAN regex in template.';
+        return true
+      }
+    }
+    return true
+  }
+
 
   onTemplateChange(templateName: string | null) {
     // remove previously template-added keys always
@@ -257,7 +296,7 @@ export class CreateCertificationComponent implements OnInit {
     if (template.extendedKeyUsage) keysToApply.push({ key: 'extendedkeyusage', value: template.extendedKeyUsage });
     // For SAN template, we add the subjectaltname extension as an empty value for user to fill,
     // while the SAN regex is kept in certificateForm.extensions for validation.
-    if (template.subjectAlternativeNameRegex) keysToApply.push({ key: 'subjectaltname', value: template.subjectAlternativeNameRegex });
+    if (template.subjectAlternativeNameRegex) keysToApply.push({ key: 'subjectaltname', value: " " });
 
     // Apply: remove existing templateAddedKeys already done above; now add new ones
     keysToApply.forEach(pair => {
@@ -329,6 +368,19 @@ export class CreateCertificationComponent implements OnInit {
     }
 
 
+    if (this.selectedTemplate?.subjectAlternativeNameRegex) {
+      if (!this.validateSAN()){
+        this.showDialogError(`Certificate SubjectAlternativeName must match: ${this.selectedTemplate?.subjectAlternativeNameRegex}.`);
+        return;
+      }
+    }
+
+    if (this.selectedTemplate?.commonNameRegex) {
+      if (!this.validateCN()){
+        this.showDialogError(`Certificate Common Name must match: ${this.selectedTemplate?.commonNameRegex}.`);
+        return;
+      }
+    }
 
 
 
@@ -342,7 +394,8 @@ export class CreateCertificationComponent implements OnInit {
 
 
 
-    if (this.role === 'ee') {
+
+      if (this.role === 'ee') {
       this.certificateForm.type = CertificateType['END_ENTITY'];
       this.showDialogDownload();
     } else {
