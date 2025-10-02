@@ -395,7 +395,7 @@ export class CreateCertificationComponent implements OnInit {
 
 
 
-      if (this.role === 'ee') {
+    if (this.role === 'ee') {
       this.certificateForm.type = CertificateType['END_ENTITY'];
       this.showDialogDownload();
     } else {
