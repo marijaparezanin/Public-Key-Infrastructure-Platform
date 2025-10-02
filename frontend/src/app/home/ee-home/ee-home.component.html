@@ -1,0 +1,58 @@
+<app-navbar></app-navbar>
+
+<div class="dashboard-container">
+  <h1>End-Entity User Dashboard</h1>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button [class.active]="activeTab==='csr'" (click)="activeTab='csr'">Upload CSR</button>
+    <button [class.active]="activeTab==='auto'" (click)="activeTab='auto'">Autogenerate Certificate</button>
+    <button [class.active]="activeTab==='revokeAndDownload'" (click)="activeTab='revokeAndDownload'">My Certificates</button>
+  </div>
+
+  <!-- Tab content -->
+  <div class="tab-content">
+
+      <!-- CSR Form -->
+      <form *ngIf="activeTab==='csr'" (ngSubmit)="uploadCSR()" #csrForm="ngForm" class="form dashbord-column" >
+
+        <label>Upload CSR (.pem)</label>
+        <input type="file" accept=".pem" (change)="onFileSelect($event, 'csrFile')" required />
+
+        <!-- Valid From -->
+        <label>Valid From</label>
+        <input type="date" [(ngModel)]="csrFormModel.validFrom" name="validFrom" required />
+
+        <!-- Valid To -->
+        <label>Valid To</label>
+        <input type="date" [(ngModel)]="csrFormModel.validTo" name="validTo" required />
+
+        <!-- Issuer -->
+        <label>Issuer</label>
+        <select [(ngModel)]="csrFormModel.issuerCertificateId" name="issuerCertificateId" required>
+          <option *ngFor="let cert of caCertificates" [value]="cert.id">
+            {{ cert.commonName }}
+          </option>
+        </select>
+
+        <button type="submit">Upload CSR</button>
+      </form>
+
+    <!-- Autogenerate Form -->
+    <app-create-certification *ngIf="activeTab==='auto'" [role]="'ee'" class="dashbord-column"></app-create-certification>
+
+
+
+    <!-- Revoke and Download Certificates -->
+    <app-all-certifications *ngIf="activeTab==='revokeAndDownload'" [role]="'ee'" class="dashbord-column"></app-all-certifications>
+
+    </div>
+
+</div>
+
+<app-dialog
+  *ngIf="dialogVisible"
+  [message]="dialogMessage"
+  [type]="dialogType"
+  (close)="onDialogClose()">
+</app-dialog>

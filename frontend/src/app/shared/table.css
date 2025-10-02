@@ -1,0 +1,84 @@
+.table-container {
+  background-color: var(--beige);
+  padding: 1.5rem;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 1200px;
+  overflow-x: auto;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  font-family: 'Roboto', sans-serif;
+}
+
+table {
+  width: 100%;
+  min-width: 1000px;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+thead {
+  background-color: var(--primary-color);
+  color: var(--light-beige);
+}
+
+th,
+td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  text-align: left;
+}
+
+tbody tr:hover {
+  background-color: var(--light-blue);
+  transition: background-color 0.3s ease;
+}
+
+.table-container button {
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-right: 0.5rem;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.table-container button.edit {
+  background-color: var(--primary-color);
+  color: var(--light-beige);
+}
+
+.table-container button.edit:hover {
+  background-color: #0a6c8b;
+  transform: translateY(-1px);
+}
+
+.table-container button.delete {
+  background-color: var(--error-color);
+  color: var(--light-beige);
+}
+
+.table-container button.delete:hover {
+  background-color: var(--error-color-lighter);
+  transform: translateY(-1px);
+}
+
+.table-container button:disabled {
+  background-color: #cccccc !important; /* light gray */
+  color: #666666 !important;            /* darker gray text */
+  cursor: not-allowed !important;       /* change cursor */
+  transform: none !important;           /* prevent hover effect */
+  box-shadow: none !important;
+}
+
+.table-container button.edit:disabled {
+  background-color: #b0c4de !important; /* gray-blue for edit */
+  color: #f0f0f0 !important;
+}
+
+.table-container button.delete:disabled {
+  background-color: #d3a6a6 !important; /* gray-red for delete */
+  color: #f0f0f0 !important;
+}
+

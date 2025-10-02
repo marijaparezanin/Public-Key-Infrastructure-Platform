@@ -1,0 +1,59 @@
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th></th>
+        <th>Organization</th>
+        <th>Type</th>
+        <th>Common Name</th>
+        <th>Serial Number</th>
+        <th>Start Date</th>
+        <th>End Date</th>
+        <th>Revocation</th>
+        <th>Valid</th>
+        <th colspan="2"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let cert of certificates; let i = index">
+        <td>{{ i + 1 }}.</td>
+        <td>{{cert.organization}}</td>
+        <td>{{cert.type}}</td>
+        <td>{{cert.commonName}}</td>
+        <td>{{cert.serialNumber}}</td>
+        <td>{{cert.startDate | date}}</td>
+        <td>{{cert.endDate | date}}</td>
+        <td>{{cert.revoked ? 'Revoked' : ''}}
+        <td>{{cert.valid ? 'Valid' : 'Invalid'}}</td>
+        <td>
+          <button
+            class="delete"
+            (click)="revokeCertificate(cert)"
+            [disabled]="cert.revoked">
+            Revoke
+          </button>
+        </td>
+        <td>
+          <button
+            *ngIf="cert.downloadable"
+            class="edit"
+            (click)="downloadCertificate(cert)"
+            [disabled]="cert.revoked">
+            Download
+          </button>
+        </td>
+
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<app-dialog
+  *ngIf="showDialog"
+  [message]="dialogMessage"
+  [type]="dialogType"
+  [revocationReasons]="revocationOptions"
+  (close)="onClose()"
+  (confirm)="onConfirm($event)">
+</app-dialog>

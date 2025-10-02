@@ -1,0 +1,26 @@
+<app-navbar></app-navbar>
+
+<div class="dashboard-container">
+  <h1>Admin Dashboard</h1>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button [class.active]="activeTab === 'addUser'" (click)="activeTab='addUser'">Add CA User</button>
+    <button [class.active]="activeTab === 'addCert'" (click)="activeTab='addCert'">Add Certificate</button>
+    <button [class.active]="activeTab === 'viewCerts'" (click)="activeTab='viewCerts'">View All Certificates</button>
+  </div>
+
+  <!-- Tab content -->
+  <div class="tab-content">
+
+    <!-- Add CA User Form -->
+    <app-register-ca *ngIf="activeTab==='addUser'" class="dashbord-column"></app-register-ca>
+
+    <!-- Add Certificate Form -->
+    <app-create-certification [role]="'admin'" *ngIf="activeTab==='addCert'" class="dashbord-column"></app-create-certification>
+
+    <!-- View All Certificates -->
+    <app-all-certifications [role]="'admin'" *ngIf="activeTab==='viewCerts'" class="dashbord-column"></app-all-certifications>
+
+  </div>
+</div>

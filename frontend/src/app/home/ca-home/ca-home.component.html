@@ -1,0 +1,40 @@
+<app-navbar></app-navbar>
+
+<div class="dashboard-container">
+  <h1>CA User Dashboard</h1>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button [class.active]="activeTab === 'issueCerts'" (click)="activeTab='issueCerts'">
+      Issue Certificate
+    </button>
+    <button [class.active]="activeTab === 'viewCerts'" (click)="activeTab='viewCerts'">
+      View My Certificates
+    </button>
+    <button [class.active]="activeTab === 'manageTemplates'" (click)="activeTab='manageTemplates'">
+      Create Templates
+    </button>
+  </div>
+
+  <!-- Tab content -->
+  <div class="tab-content">
+    <!-- Issue Certificate Form -->
+    <app-create-certification [role]="'ca'" *ngIf="activeTab==='issueCerts'" class="dashbord-column"></app-create-certification>
+
+    <!-- View My Certificates Table -->
+    <app-all-certifications [role]="'ca'" *ngIf="activeTab==='viewCerts'" class="dashbord-column" ></app-all-certifications>
+
+    <!-- Manage Templates Table/Form -->
+    <app-create-certificate-template *ngIf="activeTab==='manageTemplates'" class="dashbord-column" ></app-create-certificate-template>
+
+
+  </div>
+</div>
+
+<app-dialog
+  *ngIf="dialogVisible"
+  [message]="dialogMessage"
+  [type]="dialogType"
+  (close)="onDialogClose()"
+  (confirm)="onDialogConfirm()">
+</app-dialog>

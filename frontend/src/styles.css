@@ -1,0 +1,11 @@
+/* You can add global styles to this file, and also import other style files */
+/* You can add global styles to this file, and also import other style files */
+@import './colors.css';
+
+html, body { height: 100%; background-color: var(--light-beige);}
+body { margin: 0;}
+* {
+  font-family: "Poppins", "Roboto", Arial, sans-serif !important;
+}
+
+

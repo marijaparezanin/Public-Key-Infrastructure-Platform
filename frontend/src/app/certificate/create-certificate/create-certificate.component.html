@@ -1,0 +1,256 @@
+<form class="form" (ngSubmit)="submitCertificate(certForm)" #certForm="ngForm">
+  <!-- Issuer -->
+  <div *ngIf="certificateForm.type?.toString()?.toLocaleUpperCase() !== 'ROOT'" class="no-show">
+    <label>Issuer</label>
+    <select [(ngModel)]="certificateForm.issuerCertificateId" name="issuerCertificateId"
+            #issuer="ngModel"
+            (ngModelChange)="issuer.control.setErrors(customRequired(issuer.control, 'Select Issuer'));
+                           onIssuerChange($event)">
+      <option *ngFor="let cert of availableCertificates" [value]="cert.id">
+        {{ cert.commonName + ", " + cert.organizationalUnit + ", " + cert.type + ", " + cert.serialNumber}}
+      </option>
+    </select>
+    <div *ngIf="issuer.invalid && (issuer.dirty || issuer.touched)" class="error">
+      *Select Issuer
+    </div>
+  </div>
+
+  <!-- Template -->
+  <div *ngIf="availableTemplates.length > 0">
+    <label>Template</label>
+    <select [(ngModel)]="selectedTemplateName" name="templateName"
+            (ngModelChange)="onTemplateChange($event)">
+      <option [ngValue]="null">-- None --</option>
+      <option *ngFor="let tmpl of availableTemplates" [value]="tmpl.name">
+        {{ tmpl.name }}
+      </option>
+    </select>
+    <button type="button" (click)="onTemplateChange(null)" style="margin-left:8px">Remove template</button>
+  </div>
+
+
+  <!-- Assigned to organization -->
+  <div class="no-show" *ngIf="role==='admin'">
+    <label>Assign to organization</label>
+    <select [(ngModel)]="certificateForm.assignToOrganizationName" name="assignToOrganizationName"
+            #assignedTo="ngModel" (ngModelChange)="assignedTo.control.setErrors(customRequired(assignedTo.control, 'Select Assigned To'))">
+      <option *ngFor="let org of allOrganizations" [value]="org.name">
+        {{ org.name }}
+      </option>
+    </select>
+    <div *ngIf="assignedTo.invalid && (assignedTo.dirty || assignedTo.touched)" class="error">
+      *Select Issuer
+    </div>
+  </div>
+
+  <!-- Common Name -->
+  <label>Owner Common Name (CN)</label>
+  <input type="text" [(ngModel)]="certificateForm.commonName" name="commonName" placeholder="Common Name"
+         #commonName="ngModel" required
+         (ngModelChange)="commonName.control.setErrors(customRequired(commonName.control, 'Enter Common Name Here'))" />
+  <div *ngIf="commonName.invalid && (commonName.dirty || commonName.touched)" class="error">
+    *Enter Common Name Here
+  </div>
+  <div *ngIf="cnErrorMessage" class="error">
+    {{ cnErrorMessage }}
+  </div>
+
+  <!-- Surname -->
+  <label>Surname</label>
+  <input type="text" [(ngModel)]="certificateForm.surname" name="surname" placeholder="Surname"
+         #surname="ngModel" required
+         (ngModelChange)="surname.control.setErrors(customRequired(surname.control, 'Enter Surname Here'))" />
+  <div *ngIf="surname.invalid && (surname.dirty || surname.touched)" class="error">
+    *Enter Surname Here
+  </div>
+
+  <!-- Given Name -->
+  <label>Given Name</label>
+  <input type="text" [(ngModel)]="certificateForm.givenName" name="givenName" placeholder="Given Name"
+         #givenName="ngModel" required
+         (ngModelChange)="givenName.control.setErrors(customRequired(givenName.control, 'Enter Given Name Here'))" />
+  <div *ngIf="givenName.invalid && (givenName.dirty || givenName.touched)" class="error">
+    *Enter Given Name Here
+  </div>
+
+  <!-- Organization -->
+  <label>Organization (O)</label>
+  <input type="text" [(ngModel)]="certificateForm.organization" name="organization" placeholder="Organization"
+         #organization="ngModel" required
+         (ngModelChange)="organization.control.setErrors(customRequired(organization.control, 'Enter Organization Here'))" />
+  <div *ngIf="organization.invalid && (organization.dirty || organization.touched)" class="error">
+    *Enter Organization Here
+  </div>
+
+  <!-- Organizational Unit -->
+  <label>Organizational Unit (OU)</label>
+  <input type="text" [(ngModel)]="certificateForm.organizationalUnit" name="organizationalUnit" placeholder="OU"
+         #orgUnit="ngModel" required
+         (ngModelChange)="orgUnit.control.setErrors(customRequired(orgUnit.control, 'Enter Organizational Unit Here'))" />
+  <div *ngIf="orgUnit.invalid && (orgUnit.dirty || orgUnit.touched)" class="error">
+    *Enter Organizational Unit Here
+  </div>
+
+  <!-- Country -->
+  <label>Country (C)</label>
+  <input type="text" [(ngModel)]="certificateForm.country" name="country" placeholder="Country"
+         #country="ngModel" required
+         (ngModelChange)="country.control.setErrors(customRequired(country.control, 'Enter Country Here'))" />
+  <div *ngIf="country.invalid && (country.dirty || country.touched)" class="error">
+    *Enter Country Here
+  </div>
+
+  <!-- Email -->
+  <label>Email</label>
+  <input type="email" [(ngModel)]="certificateForm.email" name="email" placeholder="Email"
+         #email="ngModel" required
+         (ngModelChange)="email.control.setErrors(customRequired(email.control, 'Enter Email Here'))" />
+  <div *ngIf="email.invalid && (email.dirty || email.touched)" class="error">
+    *Enter Email Here
+  </div>
+
+  <!-- Certificate Type (only for admin/CA) -->
+  <div *ngIf="role !== 'ee'" class="no-show">
+    <label>Certificate Type</label>
+    <select [(ngModel)]="certificateForm.type" name="type" #certType="ngModel" required
+            (ngModelChange)="certType.control.setErrors(customRequired(certType.control, 'Select Certificate Type'))">
+      <option *ngIf="role ==='admin'">ROOT</option>
+      <option>INTERMEDIATE</option>
+      <option>END_ENTITY</option>
+    </select>
+    <div *ngIf="certType.invalid && (certType.dirty || certType.touched)" class="error">
+      *Select Certificate Type
+    </div>
+  </div>
+
+  <!-- Start / End Dates -->
+  <label>Start Date</label>
+  <input type="date"
+         [(ngModel)]="certificateForm.startDate"
+         name="startDate"
+         #startDate="ngModel"
+         required
+         (ngModelChange)="startDate.control.setErrors(customRequired(startDate.control, 'Select Start Date'))" />
+  <div *ngIf="startDate.invalid && (startDate.dirty || startDate.touched)" class="error">
+    *Select Start Date
+  </div>
+
+  <label>End Date</label>
+  <input type="date"
+         [(ngModel)]="certificateForm.endDate"
+         name="endDate"
+         #endDate="ngModel"
+         required
+         (ngModelChange)="endDate.control.setErrors(customRequired(endDate.control, 'Select End Date'))" />
+  <div *ngIf="endDate.invalid && (endDate.dirty || endDate.touched)" class="error">
+    *Select End Date
+  </div>
+
+  <!-- Extra validation message for issuer validity -->
+  <div *ngIf="isDateRangeInvalid()" class="error">
+    *Start and End Date must be within issuer's validity period
+    ({{ issuerValidFrom | date:'yyyy-MM-dd' }} → {{ issuerValidTo | date:'yyyy-MM-dd' }})
+  </div>
+
+  <div *ngIf="isTTLExceeded()" class="error">
+    *Certificate duration exceeds template limit of {{ selectedTemplate?.ttlDays }} days
+  </div>
+  <!-- New "start before end" error -->
+  <div *ngIf="isStartAfterEnd()" class="error">
+    *Start Date must be before End Date
+  </div>
+
+
+  <!-- Extensions -->
+  <h3>Extensions</h3>
+  <table>
+    <tr *ngIf="extensionOrder.length > 0">
+      <th>Key</th>
+      <th>Value</th>
+      <th></th>
+    </tr>
+
+    <tr *ngFor="let key of extensionOrder; let i = index; trackBy: trackByExtensionKey">
+      <td>
+        <select [ngModel]="key"
+                (ngModelChange)="onExtensionKeyChange(i, $event)"
+                name="extKey{{i}}"
+                [disabled]="templateAddedKeys.has(key)">
+          <option *ngFor="let k of supportedExtensions" [value]="k" [disabled]="isKeyDisabled(k, key)">
+            {{ k }}
+          </option>
+        </select>
+      </td>
+      <td>
+        <!-- Key Usage Checkboxes -->
+        <div *ngIf="key === 'keyusage'">
+          <label *ngFor="let option of keyUsageOptions">
+            <input type="checkbox"
+                   [checked]="isChecked(key, option)"
+                   [disabled]="isCheckboxDisabled(key, option)"
+                   (change)="toggleCheckbox(key, option)" />
+            {{ option }}
+          </label>
+        </div>
+
+        <!-- Extended Key Usage Checkboxes -->
+        <div *ngIf="key === 'extendedkeyusage'">
+          <label *ngFor="let option of extendedKeyUsageOptions">
+            <input type="checkbox"
+                   [checked]="isChecked(key, option)"
+                   [disabled]="isCheckboxDisabled(key, option)"
+                   (change)="toggleCheckbox(key, option)" />
+            {{ option }}
+          </label>
+        </div>
+
+
+        <!-- Other extensions as text input -->
+        <div *ngIf="key !== 'keyusage' && key !== 'extendedkeyusage'">
+          <input type="text"
+                 [(ngModel)]="extensionEntriesObject[key]"
+                 (ngModelChange)="setExtensionValue(key, $event)"
+                 name="extValue{{i}}"
+                 placeholder="Value"
+                 required
+                 #extValue="ngModel"
+                 (ngModelChange)="extValue.control.setErrors(customRequired(extValue.control, 'Enter Value'))" />
+          <div *ngIf="extValue.invalid && (extValue.dirty || extValue.touched)" class="error">
+            *Enter Value
+          </div>
+
+          <!-- SAN regex error -->
+          <div *ngIf="key === 'subjectaltname' && sanErrorMessage" class="error">
+            {{ sanErrorMessage }}
+          </div>
+
+        </div>
+      </td>
+      <td>
+        <button type="button"
+                (click)="removeExtension(key)"
+                [disabled]="templateAddedKeys.has(key) && extensionEntries.get(key) !== ''">
+          Remove
+        </button>
+      </td>
+
+    </tr>
+  </table>
+
+  <button type="button" (click)="addExtension()" [disabled]="extensionEntries.size >= supportedExtensions.length">
+    Add Extension
+  </button>
+
+  <!-- Submit -->
+  <button type="submit">Issue Certificate</button>
+</form>
+
+<!-- Dialog -->
+<app-dialog
+  *ngIf="showDialog"
+  [message]="dialogMessage"
+  [type]="dialogType"
+  (close)="onDialogClose()"
+  (confirm)="onDialogConfirm($event)"
+>
+</app-dialog>

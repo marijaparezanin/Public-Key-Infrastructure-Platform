@@ -1,0 +1,144 @@
+package com.ftn.pki.controllers.certificates;
+
+import com.ftn.pki.dtos.certificates.*;
+import com.ftn.pki.models.certificates.KEYSTOREDOWNLOADFORMAT;
+import com.ftn.pki.services.certificates.CertificateService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+
+import java.util.Collection;
+
+@RestController
+@RequestMapping("/api/certificates")
+public class CertificateController {
+
+    private final CertificateService certificateService;
+
+    @Autowired
+    public CertificateController(CertificateService certificateService) {
+        this.certificateService = certificateService;
+    }
+
+    @PostMapping
+    @PreAuthorize("hasAnyRole('ca_user','admin')")
+    public ResponseEntity<CreatedCertificateDTO> createCertificate(@RequestBody CreateCertificateDTO dto) {
+        try {
+            CreatedCertificateDTO certificate = certificateService.createCertificate(dto);
+            return ResponseEntity.ok(certificate);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
+    }
+
+    @PostMapping("/ee")
+    @PreAuthorize("hasRole('ee_user')")
+    public ResponseEntity<byte[]> createEECertificate(@RequestBody CreateEECertificateDTO dto) {
+        try {
+            byte[] keystore = certificateService.createEECertificate(dto);
+            String fileName = "certificate." + (dto.getKeyStoreFormat() == KEYSTOREDOWNLOADFORMAT.PKCS12 ? "p12" : "jks");
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(keystore);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
+    }
+
+    @GetMapping("/applicable-ca")
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasAnyRole('ca_user','ee_user','admin')")
+    public ResponseEntity<Collection<SimpleCertificateDTO>> getAllCAForOrganization() {
+        try {
+            Collection<SimpleCertificateDTO> caCertificates = certificateService.findAllCAForMyOrganization();
+            return ResponseEntity.ok(caCertificates);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .build();
+        }
+    }
+
+    @GetMapping("/all")
+    @PreAuthorize("hasAnyRole('ca_user','ee_user','admin')")
+    public ResponseEntity<Collection<SimpleCertificateDTO>> getAll(){
+        return ResponseEntity.ok(certificateService.findAllSimple());
+    }
+
+    @PutMapping("/revoke")
+    @PreAuthorize("hasAnyRole('ca_user','ee_user','admin')")
+    public ResponseEntity<Void> revokeCertificate(@RequestBody RequestRevokeDTO dto){
+        try {
+            certificateService.revokeCertificate(dto);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .build();
+        }
+    }
+
+    @PostMapping("/download")
+    @PreAuthorize("hasAnyRole('ca_user','ee_user','admin')")
+    public ResponseEntity<byte[]> downloadCertificate(@RequestBody DownloadRequestDTO dto) {
+        byte[] bytes = null;
+        try {
+            bytes = certificateService.getKeyStoreForDownload(dto);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .build();
+        }
+
+        String fileName = "certificate." + (dto.getFormat() == KEYSTOREDOWNLOADFORMAT.PKCS12 ? "p12" : "jks");
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .body(bytes);
+    }
+
+
+    @PostMapping(value = "/upload-csr", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ee_user')")
+    public ResponseEntity<byte[]> uploadCsr(
+            @RequestPart("file") MultipartFile csrFile,
+            @RequestPart("data") UploadCsrDTO dto) {
+        try {
+            byte[] certificateBytes = certificateService.createCertificateFromCsr(csrFile, dto);
+            String fileName = "certificate.pem";
+            return ResponseEntity.ok().
+                    header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(certificateBytes);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+}

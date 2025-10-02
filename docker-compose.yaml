@@ -1,0 +1,98 @@
+version: '3.9'
+
+services:
+  postgres-keycloak:
+    image: postgres:15
+    container_name: postgres-keycloak
+    environment:
+      POSTGRES_DB: keycloakdb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5433:5432"
+    volumes:
+      - keycloak-db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  postgres-backend:
+    image: postgres:15
+    container_name: postgres-backend
+    environment:
+      POSTGRES_DB: backenddb
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5434:5432"
+    volumes:
+      - backend-db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  keycloak:
+    build:
+      context: .
+      dockerfile: Dockerfile.keycloak
+    container_name: keycloak
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloakdb
+      KC_DB_USERNAME: admin
+      KC_DB_PASSWORD: admin
+      KC_HTTP_ENABLED: true
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME: localhost
+      KC_THEME: custom-theme
+    command: ["start-dev"]
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres-keycloak
+    networks:
+      - app-network
+      
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: spring-backend
+    ports:
+      - "8081:8081"
+    env_file:
+      - ./backend/.env
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-backend:5432/backenddb
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/pki/protocol/openid-connect/certs
+    depends_on:
+      - postgres-backend
+      - keycloak
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: angular-frontend
+    ports:
+      - "4200:4200"
+    depends_on:
+      - backend
+      - keycloak
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  keycloak-db-data:
+  backend-db-data:

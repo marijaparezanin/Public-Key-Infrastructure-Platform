@@ -1,0 +1,54 @@
+<form class="form" #caForm="ngForm" (ngSubmit)="onSubmit(caForm)">
+  <label>Email</label>
+  <input type="email"
+         name="email"
+         [(ngModel)]="dto.email"
+         required
+         placeholder="Enter user email"
+         #email="ngModel">
+  <div class="error" *ngIf="email.invalid && email.touched">
+    Email is required and must be valid.
+  </div>
+
+  <label>First Name</label>
+  <input type="text"
+         name="name"
+         [(ngModel)]="dto.name"
+         required
+         placeholder="First Name"
+         #name="ngModel">
+  <div class="error" *ngIf="name.invalid && name.touched">
+    First name is required.
+  </div>
+
+  <label>Surname</label>
+  <input type="text"
+         name="surname"
+         [(ngModel)]="dto.surname"
+         required
+         placeholder="Last Name"
+         #surname="ngModel">
+  <div class="error" *ngIf="surname.invalid && surname.touched">
+    Surname is required.
+  </div>
+
+  <label>Organization</label>
+  <input type="text"
+         name="organization"
+         [(ngModel)]="dto.organization"
+         required
+         placeholder="Organization"
+         #organization="ngModel">
+  <div class="error" *ngIf="organization.invalid && organization.touched">
+    Organization is required.
+  </div>
+
+  <button type="submit" [disabled]="!caForm.form.valid">Create User</button>
+</form>
+
+<app-dialog
+  *ngIf="showDialog"
+  [message]="dialogMessage"
+  [type]="dialogType"
+  (close)="onClose()">
+</app-dialog>

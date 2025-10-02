@@ -1,0 +1,25 @@
+body, html {
+  height: 100%;
+  margin: 0;
+  font-family: 'Roboto', sans-serif;
+  background: var(--light-beige);
+}
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 60px);
+  width: 100%;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+h1 {
+  text-align: center;
+  color: var(--font-dark-blue);
+  margin-bottom: 2rem;
+}
+
+.dashbord-column{
+    width:80%;
+    display: contents
+}

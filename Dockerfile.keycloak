@@ -1,0 +1,12 @@
+# Dockerfile.keycloak
+FROM quay.io/keycloak/keycloak:26.3.3
+
+# copy our provider into the providers folder so it is available at build time
+COPY providers/keycloak-pwned-policy.jar /opt/keycloak/providers/keycloak-pwned-policy.jar
+
+# copy our custom theme into the Keycloak themes directory
+COPY themes /opt/keycloak/themes
+
+# Run Keycloak build/augmentation at image build time so the provider is included
+# Use the same user as the base image expects (no user switch needed here)
+RUN /opt/keycloak/bin/kc.sh build
