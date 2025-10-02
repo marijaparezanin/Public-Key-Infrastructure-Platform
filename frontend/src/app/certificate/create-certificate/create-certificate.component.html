@@ -1,4 +1,33 @@
 <form class="form" (ngSubmit)="submitCertificate(certForm)" #certForm="ngForm">
+  <!-- Issuer -->
+  <div *ngIf="certificateForm.type?.toString()?.toLocaleUpperCase() !== 'ROOT'" class="no-show">
+    <label>Issuer</label>
+    <select [(ngModel)]="certificateForm.issuerCertificateId" name="issuerCertificateId"
+            #issuer="ngModel"
+            (ngModelChange)="issuer.control.setErrors(customRequired(issuer.control, 'Select Issuer'));
+                           onIssuerChange($event)">
+      <option *ngFor="let cert of availableCertificates" [value]="cert.id">
+        {{ cert.commonName + ", " + cert.organizationalUnit + ", " + cert.type + ", " + cert.serialNumber}}
+      </option>
+    </select>
+    <div *ngIf="issuer.invalid && (issuer.dirty || issuer.touched)" class="error">
+      *Select Issuer
+    </div>
+  </div>
+
+  <!-- Template -->
+  <div *ngIf="availableTemplates.length > 0">
+    <label>Template</label>
+    <select [(ngModel)]="selectedTemplateName" name="templateName"
+            (ngModelChange)="onTemplateChange($event)">
+      <option [ngValue]="null">-- None --</option>
+      <option *ngFor="let tmpl of availableTemplates" [value]="tmpl.name">
+        {{ tmpl.name }}
+      </option>
+    </select>
+    <button type="button" (click)="onTemplateChange(null)" style="margin-left:8px">Remove template</button>
+  </div>
+
 
   <!-- Assigned to organization -->
   <div class="no-show" *ngIf="role==='admin'">
@@ -120,35 +149,14 @@
     ({{ issuerValidFrom | date:'yyyy-MM-dd' }} → {{ issuerValidTo | date:'yyyy-MM-dd' }})
   </div>
 
-
-  <!-- Issuer -->
-  <div *ngIf="certificateForm.type?.toString()?.toLocaleUpperCase() !== 'ROOT'" class="no-show">
-    <label>Issuer</label>
-    <select [(ngModel)]="certificateForm.issuerCertificateId" name="issuerCertificateId"
-            #issuer="ngModel"
-            (ngModelChange)="issuer.control.setErrors(customRequired(issuer.control, 'Select Issuer'));
-                           onIssuerChange($event)">
-      <option *ngFor="let cert of availableCertificates" [value]="cert.id">
-        {{ cert.commonName + ", " + cert.organizationalUnit + ", " + cert.type + ", " + cert.serialNumber}}
-      </option>
-    </select>
-    <div *ngIf="issuer.invalid && (issuer.dirty || issuer.touched)" class="error">
-      *Select Issuer
-    </div>
+  <div *ngIf="isTTLExceeded()" class="error">
+    *Certificate duration exceeds template limit of {{ selectedTemplate?.ttlDays }} days
+  </div>
+  <!-- New "start before end" error -->
+  <div *ngIf="isStartAfterEnd()" class="error">
+    *Start Date must be before End Date
   </div>
 
-  <!-- Template -->
-  <div *ngIf="availableTemplates.length > 0">
-    <label>Template</label>
-    <select [(ngModel)]="selectedTemplateName" name="templateName"
-            (ngModelChange)="onTemplateChange($event)">
-      <option [ngValue]="null">-- None --</option>
-      <option *ngFor="let tmpl of availableTemplates" [value]="tmpl.name">
-        {{ tmpl.name }}
-      </option>
-    </select>
-    <button type="button" (click)="onTemplateChange(null)" style="margin-left:8px">Remove template</button>
-  </div>
 
   <!-- Extensions -->
   <h3>Extensions</h3>

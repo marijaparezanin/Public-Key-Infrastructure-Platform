@@ -200,6 +200,34 @@ export class CreateCertificationComponent implements OnInit {
     return start < this.issuerValidFrom || end > this.issuerValidTo || end < start;
   }
 
+  isStartAfterEnd(): boolean {
+    if (!this.certificateForm.startDate || !this.certificateForm.endDate) {
+      return false;
+    }
+
+    const start = new Date(this.certificateForm.startDate);
+    const end = new Date(this.certificateForm.endDate);
+
+    return start >= end; // invalid if start is the same or after
+  }
+
+
+  isTTLExceeded(): boolean {
+    if (!this.selectedTemplate || !this.selectedTemplate.ttlDays
+      || !this.certificateForm.startDate || !this.certificateForm.endDate) {
+      return false;
+    }
+
+    const start = new Date(this.certificateForm.startDate);
+    const end = new Date(this.certificateForm.endDate);
+
+    // difference in days
+    const diffMs = end.getTime() - start.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    return diffDays > this.selectedTemplate.ttlDays;
+  }
+
 
   onTemplateChange(templateName: string | null) {
     // remove previously template-added keys always
@@ -229,7 +257,7 @@ export class CreateCertificationComponent implements OnInit {
     if (template.extendedKeyUsage) keysToApply.push({ key: 'extendedkeyusage', value: template.extendedKeyUsage });
     // For SAN template, we add the subjectaltname extension as an empty value for user to fill,
     // while the SAN regex is kept in certificateForm.extensions for validation.
-    if (template.subjectAlternativeNameRegex) keysToApply.push({ key: 'subjectaltname', value: '' });
+    if (template.subjectAlternativeNameRegex) keysToApply.push({ key: 'subjectaltname', value: template.subjectAlternativeNameRegex });
 
     // Apply: remove existing templateAddedKeys already done above; now add new ones
     keysToApply.forEach(pair => {
@@ -282,6 +310,37 @@ export class CreateCertificationComponent implements OnInit {
       this.showDialog = true;
       return;
     }
+
+
+    // --- custom validations ---
+    if (this.isStartAfterEnd()) {
+      this.showDialogError('Start date must be before end date.');
+      return;
+    }
+
+    if (this.isDateRangeInvalid()) {
+      this.showDialogError('Certificate validity must be within issuer’s validity period.');
+      return;
+    }
+
+    if (this.isTTLExceeded()) {
+      this.showDialogError(`Certificate validity exceeds template maximum of ${this.selectedTemplate?.ttlDays} days.`);
+      return;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     if (this.role === 'ee') {
       this.certificateForm.type = CertificateType['END_ENTITY'];
